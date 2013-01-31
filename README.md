@@ -1,0 +1,4 @@
+spectrum
+========
+
+DARPA Spectrum Challenge
