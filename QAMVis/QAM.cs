@@ -6,6 +6,44 @@ using System.IO;
 
 namespace QAMVis
 {
+	public class Constellation
+	{
+		public struct Point
+		{
+			public Point(float mag, float phase)
+			{
+				m_Magnitude = mag;
+				m_Phase = phase;
+			}
+
+			private float m_Magnitude;
+			public float Magnitude
+			{
+				get { return m_Magnitude; }
+				set { m_Magnitude = value; }
+			}
+
+			private float m_Phase;
+			public float Phase
+			{
+				get { return m_Phase; }
+				set { m_Phase = value; }
+			}
+		}
+
+		public Constellation()
+		{
+
+		}
+
+		List<Point> m_Points = new List<Point>();
+		public List<Point> Points
+		{
+			get { return m_Points; }
+			set { m_Points = value; }
+		}
+	}
+
 	public class QAM
 	{
 		public QAM(int amplitudes, int phases, int frequencies, int frameLength)
