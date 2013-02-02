@@ -35,6 +35,7 @@
 			this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
 			this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
 			this.numericUpDown5 = new System.Windows.Forms.NumericUpDown();
+			this.comboBox1 = new System.Windows.Forms.ComboBox();
 			this.paintControl1 = new QAMVis.PaintControl();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
@@ -132,6 +133,18 @@
 			this.numericUpDown5.Size = new System.Drawing.Size(53, 20);
 			this.numericUpDown5.TabIndex = 5;
 			// 
+			// comboBox1
+			// 
+			this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboBox1.FormattingEnabled = true;
+			this.comboBox1.Items.AddRange(new object[] {
+            "Circular",
+            "Rectangular"});
+			this.comboBox1.Location = new System.Drawing.Point(295, -1);
+			this.comboBox1.Name = "comboBox1";
+			this.comboBox1.Size = new System.Drawing.Size(121, 21);
+			this.comboBox1.TabIndex = 7;
+			// 
 			// paintControl1
 			// 
 			this.paintControl1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -140,12 +153,14 @@
 			this.paintControl1.Size = new System.Drawing.Size(879, 753);
 			this.paintControl1.TabIndex = 0;
 			this.paintControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.paintControl1_Paint);
+			this.paintControl1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.paintControl1_MouseClick);
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(879, 753);
+			this.Controls.Add(this.comboBox1);
 			this.Controls.Add(this.numericUpDown5);
 			this.Controls.Add(this.numericUpDown4);
 			this.Controls.Add(this.numericUpDown3);
@@ -175,6 +190,7 @@
 		private System.Windows.Forms.NumericUpDown numericUpDown3;
 		private System.Windows.Forms.NumericUpDown numericUpDown4;
 		private System.Windows.Forms.NumericUpDown numericUpDown5;
+		private System.Windows.Forms.ComboBox comboBox1;
     }
 }
 
