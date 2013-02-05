@@ -12,6 +12,7 @@ namespace QAMVis
     public partial class Form1 : Form
     {
 		private Random m_Random = new Random();
+		private Font m_Font = new System.Drawing.Font("Arial", 10, FontStyle.Regular);
 
         public Form1()
         {
@@ -52,9 +53,9 @@ namespace QAMVis
 			timer1.Enabled = true;
         }
 
-		private void timer1_Tick(object sender, EventArgs e)
+		private void timer1_Tick (object sender, EventArgs e)
 		{
-			paintControl1.Invalidate();
+			paintControl1.Invalidate ();
 		}
 
 		private void DrawConstellation(Graphics g, Constellation c, float cx, float cy, float scale, float markerScale)
@@ -91,10 +92,12 @@ namespace QAMVis
 			List<float> stream = new List<float>();
 			int symbolIndex = 0;
 			m_NumFrames = 0;
+
 			while (symbolIndex < inSymbols.Count)
 			{
 				int symbolCount = Math.Min(inSymbols.Count - symbolIndex, numFreqs);
 				List<uint> subSymbols = inSymbols.GetRange(symbolIndex, symbolCount);
+				subSymbols.Add(0);
 				float[] fragment = modulator.Modulate(subSymbols);
 				stream.AddRange(fragment);
 				symbolIndex += symbolCount;
@@ -118,7 +121,6 @@ namespace QAMVis
 				outSymbols.AddRange(subSymbols);
 			}
 
-			//byte[] outBytes = modulator.DecodeSymbols(inSymbols);
 			byte[] outBytes = symbolStream.DecodeSymbols(outSymbols);
 			string outString = Encoding.ASCII.GetString(outBytes);
 
@@ -129,7 +131,7 @@ namespace QAMVis
 			for (int i = 0; i < inString.Length; i++)
 			{
 				float symbol = (float)i * symbolsPerByte;
-				g.DrawString(inString[i].ToString(), System.Drawing.SystemFonts.DefaultFont, Brushes.White, new PointF(20.0f + symbol * streamSize, curY));
+				g.DrawString(inString[i].ToString(), m_Font, Brushes.White, new PointF(20.0f + symbol * streamSize, curY));
 			}
 			curY += 16.0f;
 
@@ -143,16 +145,17 @@ namespace QAMVis
 				for (int i = symbolStart; i < symbolEnd; i++)
 				{
 					string str = inSymbols[i].ToString();
-					SizeF strSize = g.MeasureString(str, SystemFonts.DefaultFont);
+					SizeF strSize = g.MeasureString(str, m_Font);
 					if (X >= streamSize - 10.0f)
 					{
 						X = 0.0f;
 						Y += strSize.Height + 2;
 					}
-					g.DrawString(str, System.Drawing.SystemFonts.DefaultFont, Brushes.White, new PointF(20.0f + frameStart + X, curY + Y));
+					g.DrawString(str, m_Font, Brushes.White, new PointF(20.0f + frameStart + X, curY + Y));
 					X += strSize.Width;
 				}
 			}
+
 			int graphMax = 0;
 			curY += 26.0f;
 			m_SourceY = curY;
@@ -166,6 +169,7 @@ namespace QAMVis
 			curY += 32.0f * noiseScale * 1.5f + 10.0f;
 			DrawGraph(g, 20, curY, noisyStream.ToArray(), streamScale, 32.0f, Pens.Yellow, Pens.LightYellow, frameLength, -1, out graphMax);
 			curY += graphMax + 10.0f;
+
 			for (int f = 0; f < m_NumFrames; f++)
 			{
 				int symbolStart = f * numFreqs;
@@ -176,31 +180,32 @@ namespace QAMVis
 				for (int i = symbolStart; i < symbolEnd; i++)
 				{
 					string str = outSymbols[i].ToString();
-					SizeF strSize = g.MeasureString(str, SystemFonts.DefaultFont);
+					SizeF strSize = g.MeasureString(str, m_Font);
 					if (X >= streamSize - 10.0f)
 					{
 						X = 0.0f;
 						Y += strSize.Height + 2;
 					}
 					Brush useBrush = outSymbols[i] != inSymbols[i] ? Brushes.Red : new SolidBrush(Color.FromArgb(0, 255, 0));
-					g.DrawString(str, System.Drawing.SystemFonts.DefaultFont, useBrush, new PointF(20.0f + frameStart + X, curY + Y));
+					g.DrawString(str, m_Font, useBrush, new PointF(20.0f + frameStart + X, curY + Y));
 					X += strSize.Width;
 				}
 			}
 			curY += 16.0f;
+
 			for (int i = 0; i < inString.Length; i++)
 			{
 				float symbol = (float)i * symbolsPerByte;
 				Brush useBrush = outString[i] != inString[i] ? Brushes.Red : new SolidBrush(Color.FromArgb(0, 255, 0));
-				g.DrawString(outString[i].ToString(), System.Drawing.SystemFonts.DefaultFont, useBrush, new PointF(20.0f + symbol * streamSize, curY));
+				g.DrawString(outString[i].ToString(), m_Font, useBrush, new PointF(20.0f + symbol * streamSize, curY));
 			}
 			curY += 16.0f;
 
-			g.DrawString("amps", System.Drawing.SystemFonts.DefaultFont, Brushes.Yellow, new PointF(5, 25));
-			g.DrawString("phases", System.Drawing.SystemFonts.DefaultFont, Brushes.Yellow, new PointF(65, 25));
-			g.DrawString("freqs", System.Drawing.SystemFonts.DefaultFont, Brushes.Yellow, new PointF(125, 25));
-			g.DrawString("noise", System.Drawing.SystemFonts.DefaultFont, Brushes.Yellow, new PointF(205, 25));
-			g.DrawString(String.Format("QAM-{0} x{1}, {2} bits per frame, {3} message len", modulator.NumSymbols, modulator.NumFrequencies, Math.Log(Math.Pow(modulator.NumSymbols, modulator.NumFrequencies), 2), m_NumFrames), System.Drawing.SystemFonts.DefaultFont, Brushes.Yellow, new PointF(310, 25));
+			g.DrawString("amps", m_Font, Brushes.Yellow, new PointF(5, 25));
+			g.DrawString("phases", m_Font, Brushes.Yellow, new PointF(65, 25));
+			g.DrawString("freqs", m_Font, Brushes.Yellow, new PointF(125, 25));
+			g.DrawString("noise", m_Font, Brushes.Yellow, new PointF(205, 25));
+			g.DrawString(String.Format("QAM-{0} x{1}, {2} bits per frame, {3} message len", modulator.NumSymbols, modulator.NumFrequencies, Math.Log(Math.Pow(modulator.NumSymbols, modulator.NumFrequencies), 2), m_NumFrames), m_Font, Brushes.Yellow, new PointF(310, 25));
 
 			float markerSize = constellation.NumSymbols > 64 ? 6 : 12;
 			DrawConstellation(g, constellation, 200, 550, 150.0f, markerSize);
@@ -229,7 +234,6 @@ namespace QAMVis
 					g.DrawLine(usePen, x, y - markerSize * 0.5f, x, y + markerSize * 0.5f);
 				}
 			}
-
 		}
 
 		private void paintControl1_MouseClick(object sender, MouseEventArgs e)

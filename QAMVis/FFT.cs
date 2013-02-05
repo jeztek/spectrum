@@ -64,7 +64,6 @@ namespace QAMVis
 				coeffs[c].freq = c;
 				for (int x = 0; x < values.Length; x++)
 				{
-					double t = (double)x / (double)values.Length;
 					coeffs[c].real += m_CosTable[c][x] * values[x] * nrm;
 					coeffs[c].imag += m_SinTable[c][x] * values[x] * nrm;
 				}
