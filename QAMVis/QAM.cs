@@ -118,14 +118,14 @@ namespace QAMVis
 			m_FFT = new FFT(frameLength);
 		}
 
-		public float[] Modulate(UInt64 symbol)
+		public float[] Modulate(List<uint> symbols)
 		{
 			int subSymbolBits = (int)Math.Log(m_Constellation.NumSymbols, 2);
 			float[] result = new float[m_FrameLength];
 			float nrm = 1.0f / (float)m_NumFrequencies;
-			for (int f = 0; f < m_NumFrequencies; f++)
+			for (int f = 0; f < Math.Min(symbols.Count, m_NumFrequencies); f++)
 			{
-				int subSymbol = (int)((symbol >> (subSymbolBits * f)) & (UInt64)((1 << subSymbolBits) - 1));
+                int subSymbol = (int)symbols[f];
 				Constellation.Point point = m_Constellation.Points[subSymbol];
 				float amplitude = point.Magnitude;
 				float phase = point.Phase;
@@ -138,22 +138,22 @@ namespace QAMVis
 			return result;
 		}
 
-		public UInt64 Demodulate(float[] data)
+		public List<uint> Demodulate(float[] data)
 		{
 			float nrm = (float)m_NumFrequencies;
-			int subSymbolBits = (int)Math.Log(NumSubSymbols, 2);
+			int subSymbolBits = (int)Math.Log(m_Constellation.NumSymbols, 2);
 			List<FFT.Complex> coeffs = m_FFT.DFT(data, nrm).ToList();
 			coeffs = coeffs.OrderBy(x => -x.Magnitude).ToList();
 			coeffs = coeffs.GetRange(0, m_NumFrequencies);
 			coeffs = coeffs.OrderBy(x => x.freq).ToList();
-			UInt64 finalSymbol = 0;
+			List<uint> resultSymbols = new List<uint>();
 			float magNrm = 2.0f / (float)data.Length;
 			for (int f = 0; f < m_NumFrequencies; f++)
 			{
-				int subSymbol = m_Constellation.FindSymbol(coeffs[f].Magnitude * magNrm, coeffs[f].Angle);
-				finalSymbol |= (UInt64)subSymbol << (subSymbolBits * f);
+				uint subSymbol = (uint)m_Constellation.FindSymbol(coeffs[f].Magnitude * magNrm, coeffs[f].Angle);
+                resultSymbols.Add(subSymbol);
 			}
-			return finalSymbol;
+            return resultSymbols;
 			/*
 			float magStep = (float)data.Length / (float)(m_NumAmplitudes * 2);
 			List<FFT.Complex> coeffs = m_FFT.DFT(data, nrm).ToList();
@@ -178,100 +178,16 @@ namespace QAMVis
 
 			return finalSymbol;
 			 */
-			return 0;
+			return resultSymbols;
 		}
 
-		public byte[] DecodeSymbols(UInt64[] symbols)
-		{
-			int bitsPerSymbol = (int)Math.Log(NumSymbols, 2);
-			int symbolIndex = 0;
-			int bitsRemaining = bitsPerSymbol;
-			UInt64 currentSymbol = symbols[0];
-			List<byte> resultStream = new List<byte>();
-			while (symbolIndex < symbols.Length)
-			{
-				UInt64 currentByte = 0;
-				int currentBits = 0;
-				while (currentBits < 8)
-				{
-					int needBits = 8 - currentBits;
-					int useBits = Math.Min(bitsRemaining, needBits);
-					UInt64 useMask = (1U << useBits) - 1U;
-					currentByte |= (currentSymbol & useMask) << currentBits;
-					currentBits += useBits;
-					bitsRemaining -= useBits;
-					currentSymbol >>= useBits;
-					if (bitsRemaining == 0)
-					{
-						symbolIndex++;
-						if (symbolIndex < symbols.Length)
-						{
-							bitsRemaining = bitsPerSymbol;
-							currentSymbol = symbols[symbolIndex];
-						}
-						else
-						{
-							break;
-						}
-					}
-				}
-				resultStream.Add((byte)currentByte);
-			}
-			return resultStream.ToArray();
-		}
 
-		public UInt64[] EncodeSymbols(byte[] input)
-		{
-			int bitsPerSymbol = (int)Math.Log(NumSymbols, 2);
-			int byteIndex = 0;
-			int bitsRemaining = 8;
-			UInt64 currentByte = input[0];
-			List<UInt64> resultStream = new List<UInt64>();
-			while (byteIndex < input.Length)
-			{
-				UInt64 currentSymbol = 0;
-				int currentBits = 0;
-				while (currentBits < bitsPerSymbol)
-				{
-					int needBits = bitsPerSymbol - currentBits;
-					int useBits = Math.Min(bitsRemaining, needBits);
-					UInt64 useMask = (1U << useBits) - 1U;
-					currentSymbol |= (currentByte & useMask) << currentBits;
-					currentBits += useBits;
-					bitsRemaining -= useBits;
-					currentByte >>= useBits;
-					if (bitsRemaining == 0)
-					{
-						byteIndex++;
-						if (byteIndex < input.Length)
-						{
-							bitsRemaining = 8;
-							currentByte = input[byteIndex];
-						}
-						else
-						{
-							break;
-						}
-					}
-				}
-				resultStream.Add(currentSymbol);
-			}
-			return resultStream.ToArray();
-		}
 
-		public int NumSubSymbols
+		public int NumSymbols
 		{
 			get
 			{
 				return m_Constellation.NumSymbols;
-			}
-		}
-
-		public UInt64 NumSymbols
-		{
-			get
-			{
-				return (UInt64)Math.Pow(NumSubSymbols, m_NumFrequencies);
 			}
 		}
 

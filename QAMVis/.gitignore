@@ -12,7 +12,8 @@ TestResults
 *.suo
 *.user
 *.sln.docstates
-
+*.resources
+*.userprefs
 # Build results
 [Dd]ebug/
 [Rr]elease/
