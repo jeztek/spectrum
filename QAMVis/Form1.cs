@@ -208,6 +208,7 @@ namespace QAMVis
 			}
 		}
 
+		private FFT m_FFT;
 		private int m_NumFrames;
 		private int m_ActiveFrame;
 		private float m_SourceX;
