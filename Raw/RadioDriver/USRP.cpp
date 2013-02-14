@@ -36,10 +36,21 @@ extern "C" __declspec(dllexport) int Tune(double frequency, double rate)
 	}
 }
 
-extern "C" __declspec(dllexport) int StartStreaming(double rate)
+extern "C" __declspec(dllexport) int SetSampleRate(double rate)
 {
 	try {
 		s_Radio->set_rx_rate(rate);
+		return 0;
+	} catch( uhd::key_error a ) {
+		return -1;
+	} catch( uhd::assertion_error a ) {
+		return -1;
+	}
+}
+
+extern "C" __declspec(dllexport) int StartStreaming()
+{
+	try {
 		stream_cmd_t stream_cmd(stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
 		stream_cmd.stream_now = true;
 		stream_cmd.time_spec = uhd::time_spec_t();
@@ -52,10 +63,16 @@ extern "C" __declspec(dllexport) int StartStreaming(double rate)
 	}
 }
 
+struct df
+{
+	double r;
+	double i;
+};
+
 extern "C" __declspec(dllexport) int GetSamples(double* samples, unsigned int maxSamples)
 {
 	uhd::rx_metadata_t md;
-	int numSamples = s_RX->recv(samples, maxSamples, md, 1.0);
+	int numSamples = s_RX->recv((df*)samples, maxSamples, md, 1.0);
 	if (md.error_code == uhd::rx_metadata_t::ERROR_CODE_NONE)
 	{
 		return numSamples;

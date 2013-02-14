@@ -16,9 +16,12 @@ namespace Spectrum
 
 		[DllImport("RadioDriver.dll", CallingConvention = CallingConvention.Cdecl)]
 		public static extern int Tune(double frequency);
+		
+		[DllImport("RadioDriver.dll", CallingConvention = CallingConvention.Cdecl)]
+		public static extern int SetSampleRate(double rate);
 
 		[DllImport("RadioDriver.dll", CallingConvention = CallingConvention.Cdecl)]
-		public static extern int StartStreaming(double rate);
+		public static extern int StartStreaming();
 
 		[DllImport("RadioDriver.dll", CallingConvention = CallingConvention.Cdecl)]
 		public static extern int GetSamples(IntPtr samples, uint maxSamples);
@@ -31,14 +34,19 @@ namespace Spectrum
 			return USRPNative.Init() == 0;
 		}
 
-		public bool Tune(double frequency)
+		public bool SetFrequency(double frequency)
 		{
 			return USRPNative.Tune(frequency) == 0;
 		}
 
-		public bool StartStreaming(double rate)
+		public bool SetSampleRate(double rate)
 		{
-			USRPNative.StartStreaming(rate);
+			return USRPNative.SetSampleRate(rate) == 0;
+		}
+
+		public bool StartStreaming()
+		{
+			USRPNative.StartStreaming();
 			m_StreamingTask = Task.Factory.StartNew(StreamHandler, TaskCreationOptions.LongRunning);
 			return true;
 		}
@@ -50,12 +58,20 @@ namespace Spectrum
 			{
 				double* samples = (double*)sampleBuffer;
 				int q = sizeof(Complex);
+				int f = 0;
+
 				while (true)
 				{
+					
 					int numSamples = (int)USRPNative.GetSamples(sampleBuffer, 1024);	
-					for (int i = 0; i < numSamples; i++)
+					for (int i = 0; i < numSamples / 2; i += 2)
 					{
+					//	double z = 4;
+					//	m_Samples.Enqueue(Math.Cos(Math.PI * 2.0f * (double)f / z));
+					//	m_Samples.Enqueue(-Math.Sin(Math.PI * 2.0f * (double)f / z));
+					//	f++;
 						m_Samples.Enqueue(samples[i]);
+						m_Samples.Enqueue(samples[i + 1]);
 					}
 				}
 			}
@@ -76,7 +92,6 @@ namespace Spectrum
 		}
 
 		private ConcurrentQueue<double> m_Samples = new ConcurrentQueue<double>();
-
 		private Task m_StreamingTask;
 	}
 }
