@@ -95,15 +95,16 @@ namespace FFTAnalyzer
 						fftSamples[i * 2 + 1] = samples[i].Imag * window[i];
 					}
 					m_FFT.TableFFT(fftSamples, true);
-					double alpha = 6.0 / (double)m_FFTRate;
+					double alpha = 0.55;// 6.0 / (double)m_FFTRate;
 					double[] values = new double[m_FFTSize];
 					for (int i = 0; i < m_FFTSize; i++)
 					{
-						double offset = -10 * Math.Log10(m_FFTSize) - 10 * Math.Log10(windowPower / (double)m_FFTSize) - 20;
+						double offset = -10 * Math.Log10(m_FFTSize) - 10 * Math.Log10(windowPower / (double)m_FFTSize);
 						Complex fftSample = new Complex(fftSamples[i * 2 + 0], fftSamples[i * 2 + 1]);
 						double value = fftSample.Magnitude();
 						double avgValue = avg[i] * alpha + value * (1.0 - alpha);
-						values[i] = 20.0 * Math.Log10(avgValue) + offset;
+						double db = 20.0 * Math.Log10(avgValue);
+						values[i] = db;
 						avg[i] = avgValue;
 					}
 					m_PaintQueue.Enqueue(values);
@@ -123,7 +124,6 @@ namespace FFTAnalyzer
 			}
 			if (m_LastPaintValues != null)
 			{
-				double max = -130;
 				double[] paintArray = new double[m_FFTSize];
 				for (int i = 0; i < m_FFTSize / 2; i++)
 				{
@@ -133,7 +133,9 @@ namespace FFTAnalyzer
 				float scale = (float)e.ClipRectangle.Width / (float)m_FFTSize;
 				for (int i = 1; i < paintArray.Length; i++)
 				{
-					g.DrawLine(Pens.Cyan, new PointF((float)(i - 1) * scale, (float)(paintArray[i - 1] / max) * 200.0f), new PointF((float)(i) * scale, (float)(paintArray[i] / max) * 200.0f));
+					float cdb = (float)paintArray[i] / -120.0f;
+					float pdb = (float)paintArray[i - 1] / -120.0f;
+					g.DrawLine(Pens.Cyan, new PointF((float)(i - 1) * scale, 200.0f + pdb * 200.0f), new PointF((float)(i) * scale, 200.0f + cdb * 200.0f));
 				}
 			}
 		}
