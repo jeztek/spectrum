@@ -1,4 +1,4 @@
-﻿namespace Spectrum
+﻿namespace FFTAnalyzer
 {
 	partial class PaintArea
 	{

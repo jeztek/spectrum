@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Spectrum
 {
-	public class RadioSource
+	public class RadioReceiver
 	{
 	}
 }

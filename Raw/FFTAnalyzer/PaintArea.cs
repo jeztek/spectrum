@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Spectrum
+namespace FFTAnalyzer
 {
 	public partial class PaintArea : UserControl
 	{
