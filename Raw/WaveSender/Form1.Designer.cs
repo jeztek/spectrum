@@ -33,8 +33,8 @@
 			this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
 			this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
 			this.numericUpDown3 = new System.Windows.Forms.NumericUpDown();
-			this.paintArea1 = new WaveSender.PaintArea();
 			this.numericUpDown4 = new System.Windows.Forms.NumericUpDown();
+			this.paintArea1 = new WaveSender.PaintArea();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.numericUpDown3)).BeginInit();
@@ -62,7 +62,7 @@
             0,
             0});
 			this.numericUpDown1.Minimum = new decimal(new int[] {
-            88,
+            900,
             0,
             0,
             0});
@@ -70,10 +70,10 @@
 			this.numericUpDown1.Size = new System.Drawing.Size(120, 20);
 			this.numericUpDown1.TabIndex = 1;
 			this.numericUpDown1.Value = new decimal(new int[] {
-            933,
+            902,
             0,
             0,
-            65536});
+            0});
 			this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
 			// 
 			// numericUpDown2
@@ -122,15 +122,6 @@
             0});
 			this.numericUpDown3.ValueChanged += new System.EventHandler(this.numericUpDown3_ValueChanged);
 			// 
-			// paintArea1
-			// 
-			this.paintArea1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.paintArea1.Location = new System.Drawing.Point(0, 0);
-			this.paintArea1.Name = "paintArea1";
-			this.paintArea1.Size = new System.Drawing.Size(872, 480);
-			this.paintArea1.TabIndex = 0;
-			this.paintArea1.Paint += new System.Windows.Forms.PaintEventHandler(this.paintArea1_Paint);
-			// 
 			// numericUpDown4
 			// 
 			this.numericUpDown4.Increment = new decimal(new int[] {
@@ -157,6 +148,15 @@
             0,
             0,
             0});
+			// 
+			// paintArea1
+			// 
+			this.paintArea1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.paintArea1.Location = new System.Drawing.Point(0, 0);
+			this.paintArea1.Name = "paintArea1";
+			this.paintArea1.Size = new System.Drawing.Size(872, 480);
+			this.paintArea1.TabIndex = 0;
+			this.paintArea1.Paint += new System.Windows.Forms.PaintEventHandler(this.paintArea1_Paint);
 			// 
 			// Form1
 			// 

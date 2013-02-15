@@ -71,7 +71,6 @@ namespace WaveSender
 		}
 
 		double m_SampleRate = 2e6;
-		double m_FFTRate = 30;
 		double m_Frequency = 902e6;
 		double m_Gain = 25;
 		USRPTransmitter m_Transmitter;
