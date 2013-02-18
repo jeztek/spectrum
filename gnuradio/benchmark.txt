@@ -1,0 +1,4 @@
+~/gnuradio/gr-digital/examples/narrowband$ ./benchmark_rx.py -a type=usrp1 -p 4 -m gmsk -f 925e6 -r 2M -v --mod-code=gray --rx-gain=25
+
+~/gnuradio/gr-digital/examples/narrowband$ ./benchmark_tx.py -a type=usrp1 -p 4 -m gmsk -f 925e6 -r 2M -v --mod-code=gray --tx-gain=18 --tx-amplitude=0.4 -M 40
+
