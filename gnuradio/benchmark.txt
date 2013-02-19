@@ -1,4 +1,14 @@
+=== Working benchmark commands ===
+
+Narrowband
+----------
 ~/gnuradio/gr-digital/examples/narrowband$ ./benchmark_rx.py -a type=usrp1 -p 4 -m gmsk -f 925e6 -r 2M -v --mod-code=gray --rx-gain=25
 
 ~/gnuradio/gr-digital/examples/narrowband$ ./benchmark_tx.py -a type=usrp1 -p 4 -m gmsk -f 925e6 -r 2M -v --mod-code=gray --tx-gain=18 --tx-amplitude=0.4 -M 40
+
+OFDM
+----
+./benchmark_tx.py -M 40 --tx-amplitude=0.4 -W 1000000 -f 925e6 -a type=usrp1 -A TX/RX --tx-gain=16 -v
+
+./benchmark_rx.py -W 1000000 -v -f 925e6 -a type=usrp1 -A TX/RX --rx-gain=18
 
