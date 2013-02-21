@@ -6,11 +6,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-using System.Numerics;
 
 namespace Spectrum
 {
-	public class USRPTransmitter : RadioReceiver
+	public class USRPTransmitter : Transmitter
 	{
 		public bool Init()
 		{
@@ -32,24 +31,23 @@ namespace Spectrum
 			return RadioDriver.USRP.SetTXGain(gain) == 0;
 		}
 
-		public bool StartSending(Action<IntPtr, int> sendHandler)
+		public override bool StartTransmitting(Func<IntPtr, int, int> sendHandler)
 		{
 			m_StreamingTask = Task.Factory.StartNew(() => StreamHandler(sendHandler), TaskCreationOptions.LongRunning);
 			return true;
 		}
 
-		private void StreamHandler(Action<IntPtr, int> sendHandler)
-		{
-			int bufferSize = 1024;
+		private void StreamHandler(Func<IntPtr, int, int> sendHandler)
+		{	
+			int bufferSize = 4096;
 			IntPtr sampleBuffer = Marshal.AllocHGlobal(bufferSize * 8 * 2);
 			while (true)
 			{
-				sendHandler(sampleBuffer, bufferSize);
-				RadioDriver.USRP.SendSamples(sampleBuffer, bufferSize);
+				int numSamples = sendHandler(sampleBuffer, bufferSize);
+				RadioDriver.USRP.SendSamples(sampleBuffer, numSamples);
 			}
 		}
 
-		private ConcurrentQueue<double> m_Samples = new ConcurrentQueue<double>();
 		private Task m_StreamingTask;
 	}
 }

@@ -36,6 +36,10 @@ namespace Spectrum
 					samples[count] = sample;
 					count++;
 				}
+				else
+				{
+					System.Threading.Thread.Sleep(10);
+				}
 			}
 		}
 

@@ -38,13 +38,14 @@ namespace WaveSender
 			System.Threading.Thread.Sleep(500);
 			m_Transmitter.SetSampleRate(m_SampleRate);
 			m_Transmitter.SetGain(m_Gain);
-			m_Transmitter.StartSending((IntPtr samples, int numSamples) => SendHandler(samples, numSamples));
+			m_Transmitter.StartTransmitting((IntPtr samples, int maxSamples) => SendHandler(samples, maxSamples));
 		}
 
 		
 		int sc = 0;
-		private void SendHandler(IntPtr samples, int numSamples)
+		private int SendHandler(IntPtr samples, int maxSamples)
 		{
+			int numSamples = 1024;
 			double waveHz = (double)numericUpDown4.Value * 1000.0;
 			double f = waveHz / m_SampleRate;
 			unsafe
@@ -58,6 +59,7 @@ namespace WaveSender
 					sc++;
 				}
 			}
+			return numSamples;
 		}
 
 		private void paintArea1_Paint(object sender, PaintEventArgs e)

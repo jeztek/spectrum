@@ -54,12 +54,16 @@
   <ItemGroup>
     <Compile Include="Complex.cs" />
     <Compile Include="FFT.cs" />
+    <Compile Include="FileReceiver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RadioDriver.cs" />
-    <Compile Include="RadioReceiver.cs" />
+    <Compile Include="Receiver.cs" />
     <Compile Include="ReceiveQueue.cs" />
+    <Compile Include="Transmitter.cs" />
     <Compile Include="USRPReceiver.cs" />
     <Compile Include="USRPTransmitter.cs" />
+    <Compile Include="VirtualReceiver.cs" />
+    <Compile Include="VirtualTransmitter.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

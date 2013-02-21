@@ -5,7 +5,8 @@ using System.Text;
 
 namespace Spectrum
 {
-	public class RadioReceiver
+	public abstract class Receiver
 	{
+		public abstract bool StartReceiving(Action<IntPtr, int> receiveHandler);
 	}
 }

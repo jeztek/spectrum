@@ -22,6 +22,7 @@ namespace FFTAnalyzer
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
+#if NOTTRUE
 			m_Source = new USRPReceiver();
 			if (!m_Source.Init())
 			{
@@ -40,15 +41,23 @@ namespace FFTAnalyzer
 			m_Source.SetSampleRate(m_SampleRate);
 			m_Source.SetGain(m_Gain);
 			m_Source.StartReceiving(m_ReceiveQueue.Handler);
+#else
+			m_ReceiveQueue = new ReceiveQueue();
+			VirtualTransmitter virtualTransmitter = new VirtualTransmitter(m_SampleRate);
+			virtualTransmitter.StartTransmitting(SinTransmitHandler);
+
+			VirtualReceiver virtualReceiver = new VirtualReceiver(virtualTransmitter, m_SampleRate);
+			virtualReceiver.StartReceiving(m_ReceiveQueue.Handler);
+#endif
 			m_FFTTask = Task.Factory.StartNew(FFTHandler, TaskCreationOptions.LongRunning);
 			m_FFT = new LomontFFT();
 			timer1.Interval = (int)m_FFTRate;
 		}
-
 		
 		int sc = 0;
-		private void SendHandler(IntPtr samples, int numSamples)
+		private int SinTransmitHandler(IntPtr samples, int maxSamples)
 		{
+			int numSamples = 1024;
 			double waveHz = (double)numericUpDown2.Value * 100.0;
 			double f = waveHz / m_SampleRate;
 			unsafe
@@ -62,6 +71,7 @@ namespace FFTAnalyzer
 					sc++;
 				}
 			}
+			return numSamples;
 		}
 
 		private void FFTHandler()
@@ -146,7 +156,7 @@ namespace FFTAnalyzer
 		}
 
 		int m_FFTSize = 1024;
-		double m_SampleRate = 2e6;
+		double m_SampleRate = 250e3;
 		double m_FFTRate = 30;
 		double m_Frequency = 93.3e6;
 		double m_Gain = 25;

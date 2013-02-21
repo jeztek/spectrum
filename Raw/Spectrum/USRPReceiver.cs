@@ -10,7 +10,7 @@ using System.Numerics;
 
 namespace Spectrum
 {
-	public class USRPReceiver : RadioReceiver
+	public class USRPReceiver : Receiver
 	{
 		public bool Init()
 		{
@@ -32,7 +32,7 @@ namespace Spectrum
 			return RadioDriver.USRP.SetRXGain(gain) == 0;
 		}
 
-		public bool StartReceiving(Action<IntPtr, int> receiveHandler)
+		public override bool StartReceiving(Action<IntPtr, int> receiveHandler)
 		{
 			RadioDriver.USRP.StartReceiving();
 			m_StreamingTask = Task.Factory.StartNew(() => StreamHandler(receiveHandler), TaskCreationOptions.LongRunning);
