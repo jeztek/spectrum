@@ -42,7 +42,7 @@ class ofdm_mod(gr.hier_block2):
     """
     def __init__(self, options, msgq_limit=2, pad_for_usrp=True):
         """
-	Hierarchical block for sending packets
+    Hierarchical block for sending packets
 
         Packets to be sent are enqueued by calling send_pkt.
         The output is the complex modulated signal at baseband.
@@ -53,9 +53,9 @@ class ofdm_mod(gr.hier_block2):
         @param pad_for_usrp: If true, packets are padded such that they end up a multiple of 128 samples
         """
 
-	gr.hier_block2.__init__(self, "ofdm_mod",
-				gr.io_signature(0, 0, 0),       # Input signature
-				gr.io_signature(1, 1, gr.sizeof_gr_complex)) # Output signature
+    gr.hier_block2.__init__(self, "ofdm_mod",
+                gr.io_signature(0, 0, 0),       # Input signature
+                gr.io_signature(1, 1, gr.sizeof_gr_complex)) # Output signature
 
         self._pad_for_usrp = pad_for_usrp
         self._modulation = options.modulation
@@ -63,6 +63,7 @@ class ofdm_mod(gr.hier_block2):
         self._occupied_tones = options.occupied_tones
         self._cp_length = options.cp_length
         self._pkt_accum = None
+        self._pkt_len = 0
         self._accumulated_pkts = 0
 
         win = [] #[1 for i in range(self._fft_length)]
@@ -129,6 +130,27 @@ class ofdm_mod(gr.hier_block2):
             self.connect(self.cp_adder, gr.file_sink(gr.sizeof_gr_complex,
                                                      "ofdm_cp_adder_c.dat"))
 
+    def interleave_pkt(self, pkt):
+        pktlen = len(pkt)
+        if self._pkt_accum is None:
+            self._pkt_len = pktlen
+            self._pkt_accum = [ ]
+            for i in range(pktlen):
+                pktstr = " " * pktlen
+                self._pkt_accum.append(bytearray(pktstr))               
+        if self._accumulated_pkts < pktlen:
+            print "Accumulated " + str(self._accumulated_pkts)
+            for i in range(pktlen):
+                self._pkt_accum[i][self._accumulated_pkts] = pkt[i]
+            self._accumulated_pkts = self._accumulated_pkts + 1
+        else:
+            print "Firing"
+            for i in range(pktlen):
+                inter_pkt = self._pkt_accum[i]
+                msg = gr.message_from_string(str(inter_pkt))
+                self._pkt_input.msgq().insert_tail(msg)
+            self._accumulated_pkts = 0
+
     def send_pkt(self, payload='', eof=False):
         """
         Send the payload.
@@ -137,20 +159,14 @@ class ofdm_mod(gr.hier_block2):
         @type payload: string
         """
         if eof:
+            rem_pkts = self._accumulated_pkts - self._pkt_len
+            for i in range(rem_pkts):
+                pktstr = '\0' * pktlen
+                self.interleave_pkt(pktstr)
             msg = gr.message(1) # tell self._pkt_input we're not sending any more packets
+            self._pkt_input.msgq().insert_tail(msg)
         else:
-            # print "original_payload =", string_to_hex_list(payload)
-
-            
-            pkt = ofdm_packet_utils.make_packet(payload, 1, 1,
-                                                self._pad_for_usrp,
-                                                whitening=True)
-            
-            # AYBABTUS: Accumulate N packets here, interleave, and post them all onto the msgq
-
-            #print "pkt =", string_to_hex_list(pkt)
-            msg = gr.message_from_string(pkt)
-        self._pkt_input.msgq().insert_tail(msg)
+            self.interleave_pkt(payload)
 
     def add_options(normal, expert):
         """
@@ -190,18 +206,18 @@ class ofdm_demod(gr.hier_block2):
 
     def __init__(self, options, callback=None):
         """
-	Hierarchical block for demodulating and deframing packets.
+    Hierarchical block for demodulating and deframing packets.
 
-	The input is the complex modulated signal at baseband.
+    The input is the complex modulated signal at baseband.
         Demodulated packets are sent to the handler.
 
         @param options: pass modulation options from higher layers (fft length, occupied tones, etc.)
         @param callback:  function of two args: ok, payload
         @type callback: ok: bool; payload: string
-	"""
-	gr.hier_block2.__init__(self, "ofdm_demod",
-				gr.io_signature(1, 1, gr.sizeof_gr_complex), # Input signature
-				gr.io_signature(1, 1, gr.sizeof_gr_complex)) # Output signature
+    """
+    gr.hier_block2.__init__(self, "ofdm_demod",
+                gr.io_signature(1, 1, gr.sizeof_gr_complex), # Input signature
+                gr.io_signature(1, 1, gr.sizeof_gr_complex)) # Output signature
 
 
         self._rcvd_pktq = gr.msg_queue()          # holds packets from the PHY
@@ -310,17 +326,39 @@ class _queue_watcher_thread(_threading.Thread):
         self.callback = callback
         self.keep_running = True
         self.start()
+        self._pkt_accum = None
+        self._pkt_len = 0
+        self._accumulated_pkts = 0
 
+    def deinterleave_pkt(self, pkt):
+        pktlen = len(pkt)
+        print pktlen
+        if self._pkt_accum is None:
+            self._pkt_len = pktlen
+            self._pkt_accum = [ ]
+            for i in range(pktlen):
+                pktstr = " " * pktlen
+                self._pkt_accum.append(bytearray(pktstr))               
+        if self._accumulated_pkts < pktlen:
+            print "Accumulated " + str(self._accumulated_pkts)
+            for i in range(pktlen):
+                self._pkt_accum[i][self._accumulated_pkts] = pkt[i]
+            self._accumulated_pkts = self._accumulated_pkts + 1
+        else:
+            print "Firing"
+            for i in range(pktlen):
+                inter_pkt = str(self._pkt_accum[i])
+                ok, payload = ofdm_packet_utils.unmake_packet(inter_pkt)
+                if self.callback:
+                    self.callback(ok, payload)
+            self._accumulated_pkts = 0
 
     def run(self):
         while self.keep_running:
             msg = self.rcvd_pktq.delete_head()
+            msgstr = msg.to_string()
+            self.deinterleave_pkt(msgstr)
 
-            # AYBABTUS: Accumulate N messages, and deinterleave here, then unmake them, and call the callback N times
-
-            ok, payload = ofdm_packet_utils.unmake_packet(msg.to_string())
-            if self.callback:
-                self.callback(ok, payload)
 
 # Generating known symbols with:
 # i = [2*random.randint(0,1)-1 for i in range(4512)]
