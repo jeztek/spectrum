@@ -76,8 +76,8 @@ class my_top_block(gr.top_block):
         samp_rate = self.sink.get_sample_rate()
         volume = 0.08
 
-	low_pass_transition = 50e3
-	band_pass_transition = 50e3
+	low_pass_transition = 500e3
+	band_pass_transition = 500e3
 
         self.low_pass_filter_qv0 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
             1, samp_rate, samp_rate/4, low_pass_transition, firdes.WIN_HAMMING, 6.76))
