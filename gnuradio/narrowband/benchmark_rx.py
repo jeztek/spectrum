@@ -77,19 +77,24 @@ class my_top_block(gr.top_block):
         samp_rate = self.source.get_sample_rate()
         print "SAMP RATE " + str(samp_rate)
         
+        band_transition = 50e3
+        low_transition = 50e3
+
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, 0e3, samp_rate/2, 1e3, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, 0e3, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, (-samp_rate/2), 0e3, 1e3, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, (-samp_rate/2), 0e3, band_transition, firdes.WIN_HAMMING, 6.76))
 
         self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(2, (2, ), -samp_rate/4, samp_rate)
         self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(2, (2, ), samp_rate/4, samp_rate)
 
+        guard_region = 500e3
+
         self.low_pass_filter_qv0 = gr.fir_filter_ccf(1, firdes.low_pass(
-            1, samp_rate/2, samp_rate/4-40e3, 1e3, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
         self.low_pass_filter_qv1 = gr.fir_filter_ccf(1, firdes.low_pass(
-            1, samp_rate/2, samp_rate/4-40e3, 1e3, firdes.WIN_HAMMING, 6.76))
-        
+            1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
+
         self.connect(self.source, self.band_pass_filter_qv0)
         self.connect((self.band_pass_filter_qv0, 0), (self.freq_translate_qv0, 0))
         self.connect((self.freq_translate_qv0, 0), (self.low_pass_filter_qv0, 0))
@@ -120,7 +125,7 @@ def main():
         if ok:
             n_right += 1
 
-        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d" % (
+        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 0" % (
             ok, pktno, n_rcvd, n_right)
 
     def rx_callback1(ok, payload):
@@ -130,7 +135,7 @@ def main():
         if ok:
             n_right += 1
 
-        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d" % (
+        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 1" % (
             ok, pktno, n_rcvd, n_right)
 
 
