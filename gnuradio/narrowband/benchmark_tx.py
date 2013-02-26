@@ -74,10 +74,10 @@ class my_top_block(gr.top_block):
         self.txpath.append(transmit_path(modulator, options))
 
         samp_rate = self.sink.get_sample_rate()
-        volume = 0.08
 
-	low_pass_transition = 500e3
-	band_pass_transition = 500e3
+        volume = options.split_amplitude
+        band_transition = options.trans_width
+        low_transition = options.trans_width
 
         self.low_pass_filter_qv0 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
             1, samp_rate, samp_rate/4, low_pass_transition, firdes.WIN_HAMMING, 6.76))
@@ -140,6 +140,16 @@ def main():
                       help="use intput file for packet contents")
     parser.add_option("","--to-file", default=None,
                       help="Output file for modulated samples")
+
+    custom_grp = parser.add_option_group("Custom")
+    custom_grp.add_option("","--trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
+    custom_grp.add_option("","--guard-width", type="eng_float", default=10e3,
+                      help="guard region width")
+    custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
+                      help="file sample rate")
+    custom_grp.add_option("","--split-amplitude", type="eng_float", default=0.08,
+                      help="multiplier post split")
 
     transmit_path.add_options(parser, expert_grp)
     uhd_transmitter.add_options(parser)

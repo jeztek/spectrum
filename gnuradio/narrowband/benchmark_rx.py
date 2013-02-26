@@ -77,8 +77,8 @@ class my_top_block(gr.top_block):
         samp_rate = self.source.get_sample_rate()
         print "SAMP RATE " + str(samp_rate)
         
-        band_transition = 50e3
-        low_transition = 50e3
+        band_transition = options.trans_width
+        low_transition = options.trans_width
 
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
             1, samp_rate, 0e3, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
@@ -88,7 +88,7 @@ class my_top_block(gr.top_block):
         self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(2, (2, ), -samp_rate/4, samp_rate)
         self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(2, (2, ), samp_rate/4, samp_rate)
 
-        guard_region = 500e3
+        guard_region = options.guard_width
 
         self.low_pass_filter_qv0 = gr.fir_filter_ccf(1, firdes.low_pass(
             1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
@@ -151,6 +151,16 @@ def main():
                             % (', '.join(demods.keys()),))
     parser.add_option("","--from-file", default=None,
                       help="input file of samples to demod")
+    
+    custom_grp = parser.add_option_group("Custom")
+    custom_grp.add_option("","--trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
+    custom_grp.add_option("","--guard-width", type="eng_float", default=10e3,
+                      help="guard region width")
+    custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
+                      help="file sample rate")
+    custom_grp.add_option("","--split-amplitude", type="eng_float", default=0.08,
+                      help="multiplier post split")
 
     receive_path.add_options(parser, expert_grp)
     uhd_receiver.add_options(parser)

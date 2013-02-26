@@ -42,7 +42,6 @@ import struct, sys
 class my_top_block(gr.top_block):
     def __init__(self, callback0, callback1, options):
         gr.top_block.__init__(self)
-        file_samp_rate = 2e6
         use_source = None
         if(options.rx_freq is not None):
             self.source = uhd_receiver(options.args,
@@ -53,7 +52,7 @@ class my_top_block(gr.top_block):
             use_source = self.source
         elif(options.from_file is not None):
             self.source = gr.file_source(gr.sizeof_gr_complex, options.from_file)
-            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, file_samp_rate)
+            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, options.file_samp_rate)
             self.connect(self.source, self.throttle)
             use_source = self.throttle
         else:
@@ -70,14 +69,12 @@ class my_top_block(gr.top_block):
         if(options.rx_freq is not None):
             samp_rate = self.source.get_sample_rate()
         else:
-            samp_rate = file_samp_rate
-
-        print "SAMP RATE " + str(samp_rate)
-        
-        band_transition = 50e3
-        low_transition = 50e3
-        guard_region = 15e3
-
+            samp_rate = options.file_samp_rate
+      
+        band_transition = options.trans_width
+        low_transition = options.trans_width
+        guard_region = options.guard_width
+  
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
             1, samp_rate, 0e3, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
@@ -130,10 +127,19 @@ def main():
 
     parser = OptionParser(option_class=eng_option, conflict_handler="resolve")
     expert_grp = parser.add_option_group("Expert")
+    custom_grp = parser.add_option_group("Custom")
     parser.add_option("","--discontinuous", action="store_true", default=False,
                       help="enable discontinuous")
     parser.add_option("","--from-file", default=None,
                       help="input file of samples to demod")
+    custom_grp.add_option("","--trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
+    custom_grp.add_option("","--guard-width", type="eng_float", default=10e3,
+                      help="guard region width")
+    custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
+                      help="file sample rate")
+    custom_grp.add_option("","--split-amplitude", type="eng_float", default=1,
+                      help="multiplier post split")
 
     receive_path.add_options(parser, expert_grp)
     uhd_receiver.add_options(parser)

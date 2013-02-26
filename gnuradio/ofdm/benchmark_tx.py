@@ -39,7 +39,6 @@ from ofdm import ofdm_mod
 class my_top_block(gr.top_block):
     def __init__(self, options):
         gr.top_block.__init__(self)
-        file_samp_rate = 2e6
         use_sink = None
         if(options.tx_freq is not None):
             self.sink = uhd_transmitter(options.args,
@@ -50,7 +49,7 @@ class my_top_block(gr.top_block):
             use_sink = self.sink
         elif(options.to_file is not None):
             self.sink = gr.file_sink(gr.sizeof_gr_complex, options.to_file)
-            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, file_samp_rate)
+            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, options.file_samp_rate)
             self.connect(self.throttle, self.sink)
             use_sink = self.throttle
         else:
@@ -66,25 +65,25 @@ class my_top_block(gr.top_block):
         if(options.tx_freq is not None):
             samp_rate = self.sink.get_sample_rate()
         else:
-            samp_rate = file_samp_rate
+            samp_rate = options.file_samp_rate
 
         print "SAMP RATE " + str(samp_rate)    
 
-        volume = 0.4
-        low_pass_transition = 50e3
-        band_pass_transition = 50e3
+        volume = options.split_amplitude
+        band_transition = options.trans_width
+        low_transition = options.trans_width
 
         self.low_pass_filter_qv0 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
-            1, samp_rate, samp_rate/4, low_pass_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, samp_rate/4, low_transition, firdes.WIN_HAMMING, 6.76))
         self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(1, (10, ), samp_rate/4, samp_rate)
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, -samp_rate/2, 0, band_pass_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, -samp_rate/2, 0, band_transition, firdes.WIN_HAMMING, 6.76))
 
         self.low_pass_filter_qv1 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
-            1, samp_rate, samp_rate/4, 1e3, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, samp_rate/4, low_transition, firdes.WIN_HAMMING, 6.76))
         self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(1, (10, ), -samp_rate/4, samp_rate)
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, 0, samp_rate/2, 10e3, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, 0, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
 
         self.combiner = gr.add_vcc(1)
         self.volume_multiply = blocks.multiply_const_vcc((volume, ))
@@ -126,6 +125,14 @@ def main():
                       help="use intput file for packet contents")
     parser.add_option("","--to-file", default=None,
                       help="Output file for modulated samples")
+
+    custom_grp = parser.add_option_group("Custom")
+    custom_grp.add_option("","--trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
+    custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
+                      help="file sample rate")
+    custom_grp.add_option("","--split-amplitude", type="eng_float", default=1,
+                      help="multiplier post split")
 
     transmit_path.add_options(parser, expert_grp)
     ofdm_mod.add_options(parser, expert_grp)
