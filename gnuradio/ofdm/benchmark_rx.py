@@ -140,7 +140,10 @@ def main():
                       help="file sample rate")
     custom_grp.add_option("","--split-amplitude", type="eng_float", default=1,
                       help="multiplier post split")
-
+    custom_grp.add_option("","--rs-n", type="int", default=0,
+                      help="reed solomon n")
+    custom_grp.add_option("","--rs-k", type="int", default=0,
+                      help="reed solomon k")
     receive_path.add_options(parser, expert_grp)
     uhd_receiver.add_options(parser)
     ofdm_demod.add_options(parser, expert_grp)

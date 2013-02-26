@@ -40,7 +40,7 @@ class ofdm_mod(gr.hier_block2):
     
     Send packets by calling send_pkt
     """
-    def __init__(self, options, msgq_limit=2, pad_for_usrp=True):
+    def __init__(self, options, msgq_limit=2, pad_for_usrp=True, coder=None):
         """
 	Hierarchical block for sending packets
 
@@ -57,6 +57,7 @@ class ofdm_mod(gr.hier_block2):
 				gr.io_signature(0, 0, 0),       # Input signature
 				gr.io_signature(1, 1, gr.sizeof_gr_complex)) # Output signature
 
+        self.coder = coder
         self._pad_for_usrp = pad_for_usrp
         self._modulation = options.modulation
         self._fft_length = options.fft_length
@@ -144,7 +145,8 @@ class ofdm_mod(gr.hier_block2):
             
             pkt = ofdm_packet_utils.make_packet(payload, 1, 1,
                                                 self._pad_for_usrp,
-                                                whitening=True)
+                                                whitening=True,
+                                                coder=self.coder)
             
             # AYBABTUS: Accumulate N packets here, interleave, and post them all onto the msgq
 
@@ -188,7 +190,7 @@ class ofdm_demod(gr.hier_block2):
     app via the callback.
     """
 
-    def __init__(self, options, callback=None):
+    def __init__(self, options, callback=None, coder=None):
         """
 	Hierarchical block for demodulating and deframing packets.
 
@@ -205,7 +207,7 @@ class ofdm_demod(gr.hier_block2):
 
 
         self._rcvd_pktq = gr.msg_queue()          # holds packets from the PHY
-
+        self.coder = coder
         self._modulation = options.modulation
         self._fft_length = options.fft_length
         self._occupied_tones = options.occupied_tones
@@ -271,7 +273,7 @@ class ofdm_demod(gr.hier_block2):
         if options.verbose:
             self._print_verbage()
             
-        self._watcher = _queue_watcher_thread(self._rcvd_pktq, callback)
+        self._watcher = _queue_watcher_thread(self._rcvd_pktq, callback, self.coder)
 
     def add_options(normal, expert):
         """
@@ -303,8 +305,9 @@ class ofdm_demod(gr.hier_block2):
 
 
 class _queue_watcher_thread(_threading.Thread):
-    def __init__(self, rcvd_pktq, callback):
+    def __init__(self, rcvd_pktq, callback, coder):
         _threading.Thread.__init__(self)
+        self.coder = coder
         self.setDaemon(1)
         self.rcvd_pktq = rcvd_pktq
         self.callback = callback
@@ -318,7 +321,7 @@ class _queue_watcher_thread(_threading.Thread):
 
             # AYBABTUS: Accumulate N messages, and deinterleave here, then unmake them, and call the callback N times
 
-            ok, payload = ofdm_packet_utils.unmake_packet(msg.to_string())
+            ok, payload = ofdm_packet_utils.unmake_packet(msg.to_string(), coder=self.coder)
             if self.callback:
                 self.callback(ok, payload)
 

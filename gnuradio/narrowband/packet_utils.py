@@ -114,7 +114,11 @@ def encode_rs(coder, input):
         if block_len > rem_len:
             block_len = rem_len
         block = input[in_pos : in_pos + block_len]
-        code = coder.encode(block)
+        try:
+            code = coder.encode(block)
+        except:
+            print "Failed to encode, len " + str(in_len) + " must be divisible by k"
+            raise
         output = output + code
         in_pos += block_len
     return output

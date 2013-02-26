@@ -30,6 +30,14 @@ from gnuradio.digital import qam
 import copy
 import sys
 
+def module_exists(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        return False
+    else:
+        return True
+
 # /////////////////////////////////////////////////////////////////////////////
 #                              transmit path
 # /////////////////////////////////////////////////////////////////////////////
@@ -47,10 +55,18 @@ class transmit_path(gr.hier_block2):
 
         self._verbose      = options.verbose      # turn verbose mode on/off
         self._tx_amplitude = options.tx_amplitude # digital amp sent to radio
+       
+        coder = None
+        if options.rs_n and options.rs_k:
+          if module_exists("reedsolomon"):
+            print "INIT REED SOLOMON WITH " + str(options.rs_n) + "/" + str(options.rs_k)
+            import reedsolomon
+            coder = reedsolomon.Codec(options.rs_n, options.rs_k)
 
         self.ofdm_tx = ofdm_mod(options,
                                         msgq_limit=4,
-                                        pad_for_usrp=False)
+                                        pad_for_usrp=False,
+                                        coder=coder)
 
         self.amp = gr.multiply_const_cc(1)
         self.set_tx_amplitude(self._tx_amplitude)

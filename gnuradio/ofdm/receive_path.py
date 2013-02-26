@@ -29,6 +29,14 @@ from gnuradio.digital import qam
 import copy
 import sys
 
+def module_exists(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        return False
+    else:
+        return True
+
 # /////////////////////////////////////////////////////////////////////////////
 #                              receive path
 # /////////////////////////////////////////////////////////////////////////////
@@ -46,11 +54,18 @@ class receive_path(gr.hier_block2):
         self._verbose     = options.verbose
         self._log         = options.log
         self._rx_callback = rx_callback      # this callback is fired when there's a packet available
+      
+        coder = None
+        if options.rs_n and options.rs_k:
+          if module_exists("reedsolomon"):
+            print "INIT REED SOLOMON WITH " + str(options.rs_n) + "/" + str(options.rs_k)
+            import reedsolomon
+            coder = reedsolomon.Codec(options.rs_n, options.rs_k)
 
         # receiver
         self.ofdm_rx = ofdm_demod(options,
-                                          callback=self._rx_callback)
-
+                                          callback=self._rx_callback,
+                                          coder=coder)
         # Carrier Sensing Blocks
         alpha = 0.001
         thresh = 30   # in dB, will have to adjust

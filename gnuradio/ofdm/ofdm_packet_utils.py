@@ -95,9 +95,45 @@ def make_header(payload_len, whitener_offset=0):
     val = ((whitener_offset & 0xf) << 12) | (payload_len & 0x0fff)
     #print "offset =", whitener_offset, " len =", payload_len, " val=", val
     return struct.pack('!HH', val, val)
+    
+def encode_rs(coder, input):
+    output = ""
+    in_pos = 0
+    in_len = len(input)
+    chunk_len = coder.k
+    while in_pos < in_len:
+        block_len = chunk_len
+        rem_len = in_len - in_pos
+        if block_len > rem_len:
+            block_len = rem_len
+        block = input[in_pos : in_pos + block_len]
+        try:
+            code = coder.encode(block)
+        except:
+            print "Failed to encode, len " + str(in_len) + " must be divisible by k"
+            raise
+        output = output + code
+        in_pos += block_len
+    return output
+
+def decode_rs(coder, input):
+    output = ""
+    in_pos = 0
+    in_len = len(input)
+    chunk_len = coder.n
+    while in_pos < in_len:
+        block_len = chunk_len
+        rem_len = in_len - in_pos
+        if block_len > rem_len:
+            block_len = rem_len
+        block = input[in_pos : in_pos + block_len]
+        code, corrections = coder.decode(block)
+        output = output + code
+        in_pos += block_len
+    return output 
 
 def make_packet(payload, samples_per_symbol, bits_per_symbol,
-                pad_for_usrp=True, whitener_offset=0, whitening=True):
+                pad_for_usrp=True, whitener_offset=0, whitening=True, coder=None):
     """
     Build a packet, given access code, payload, and whitener offset
 
@@ -119,6 +155,8 @@ def make_packet(payload, samples_per_symbol, bits_per_symbol,
 
     payload_with_crc = crc.gen_and_append_crc32(payload)
     #print "outbound crc =", string_to_hex_list(payload_with_crc[-4:])
+    if coder is not None:
+      payload_with_crc = encode_rs(coder, payload_with_crc)
 
     L = len(payload_with_crc)
     MAXLEN = len(random_mask_tuple)
@@ -166,7 +204,7 @@ def _npadding_bytes(pkt_byte_len, samples_per_symbol, bits_per_symbol):
     return byte_modulus - r
     
 
-def unmake_packet(whitened_payload_with_crc, whitener_offset=0, dewhitening=1):
+def unmake_packet(whitened_payload_with_crc, whitener_offset=0, dewhitening=1, coder=None):
     """
     Return (ok, payload)
 
@@ -180,6 +218,12 @@ def unmake_packet(whitened_payload_with_crc, whitener_offset=0, dewhitening=1):
         payload_with_crc = dewhiten(whitened_payload_with_crc, whitener_offset)
     else:
         payload_with_crc = whitened_payload_with_crc
+
+    if coder is not None:
+      try:
+        payload_with_crc = decode_rs(coder, payload_with_crc)
+      except:
+        payload_with_crc = "XXXXXXXXXX"
 
     ok, payload = crc.check_crc32(payload_with_crc)
 
