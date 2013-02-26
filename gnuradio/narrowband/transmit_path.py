@@ -22,9 +22,18 @@
 from gnuradio import gr
 from gnuradio import eng_notation
 from gnuradio import digital
+from pkt import mod_pkts
 
 import copy
 import sys
+
+def module_exists(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        return False
+    else:
+        return True
 
 # /////////////////////////////////////////////////////////////////////////////
 #                              transmit path
@@ -45,18 +54,26 @@ class transmit_path(gr.hier_block2):
         self._tx_amplitude = options.tx_amplitude   # digital amplitude sent to USRP
         self._bitrate      = options.bitrate        # desired bit rate
         self._modulator_class = modulator_class     # the modulator_class we are using
+        
+        coder = None
+        if options.rs_n and options.rs_k:
+          if module_exists("reedsolomon"):
+            print "INIT REED SOLOMON WITH " + str(options.rs_n) + "/" + str(options.rs_k)
+            import reedsolomon
+            coder = reedsolomon.Codec(options.rs_n, options.rs_k)
 
         # Get mod_kwargs
         mod_kwargs = self._modulator_class.extract_kwargs_from_options(options)
         
         # transmitter
-	self.modulator = self._modulator_class(**mod_kwargs)
+        self.modulator = self._modulator_class(**mod_kwargs)
         
         self.packet_transmitter = \
-            digital.mod_pkts(self.modulator,
+            mod_pkts(self.modulator,
                              access_code=None,
                              msgq_limit=4,
-                             pad_for_usrp=True)
+                             pad_for_usrp=True,
+                             coder=coder)
 
         self.amp = gr.multiply_const_cc(1)
         self.set_tx_amplitude(self._tx_amplitude)

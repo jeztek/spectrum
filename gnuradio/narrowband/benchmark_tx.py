@@ -48,6 +48,7 @@ class my_top_block(gr.top_block):
         gr.top_block.__init__(self)
 
         self.txpath = [ ]
+        use_sink = None
         if(options.tx_freq is not None):
             # Work-around to get the modulation's bits_per_symbol
             args = modulator.extract_kwargs_from_options(options)
@@ -60,10 +61,13 @@ class my_top_block(gr.top_block):
                                         options.verbose)
             sample_rate = self.sink.get_sample_rate()
             options.samples_per_symbol = self.sink._sps
-            
+            use_sink = self.sink
         elif(options.to_file is not None):
             sys.stderr.write(("Saving samples to '%s'.\n\n" % (options.to_file)))
             self.sink = gr.file_sink(gr.sizeof_gr_complex, options.to_file)
+            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, options.file_samp_rate)
+            self.connect(self.throttle, self.sink)
+            use_sink = self.throttle
         else:
             sys.stderr.write("No sink defined, dumping samples to null sink.\n\n")
             self.sink = gr.null_sink(gr.sizeof_gr_complex)
@@ -73,24 +77,28 @@ class my_top_block(gr.top_block):
         self.txpath.append(transmit_path(modulator, options))
         self.txpath.append(transmit_path(modulator, options))
 
-        samp_rate = self.sink.get_sample_rate()
+        samp_rate = 0
+        if(options.tx_freq is not None):
+            samp_rate = self.sink.get_sample_rate()
+        else:
+            samp_rate = options.file_samp_rate
 
         volume = options.split_amplitude
         band_transition = options.trans_width
         low_transition = options.trans_width
 
         self.low_pass_filter_qv0 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
-            1, samp_rate, samp_rate/4, low_pass_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, samp_rate/4, low_transition, firdes.WIN_HAMMING, 6.76))
         self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(1, (10, ), samp_rate/4, samp_rate)
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, -samp_rate/2, 0, band_pass_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, -samp_rate/2, 0, band_transition, firdes.WIN_HAMMING, 6.76))
 
   
         self.low_pass_filter_qv1 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
-            1, samp_rate, samp_rate/4, low_pass_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, samp_rate/4, low_transition, firdes.WIN_HAMMING, 6.76))
         self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(1, (10, ), -samp_rate/4, samp_rate)
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, 0, samp_rate/2, band_pass_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, 0, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
 
         self.combiner = gr.add_vcc(1)
         self.volume_multiply = blocks.multiply_const_vcc((volume, ))
@@ -109,7 +117,7 @@ class my_top_block(gr.top_block):
 
         self.connect((self.combiner, 0), (self.volume_multiply, 0))
 
-        self.connect(self.volume_multiply, self.sink)
+        self.connect(self.volume_multiply, use_sink)
 
 # /////////////////////////////////////////////////////////////////////////////
 #                                   main
@@ -150,6 +158,10 @@ def main():
                       help="file sample rate")
     custom_grp.add_option("","--split-amplitude", type="eng_float", default=0.08,
                       help="multiplier post split")
+    custom_grp.add_option("","--rs-n", type="int", default=0,
+                      help="reed solomon n")
+    custom_grp.add_option("","--rs-k", type="int", default=0,
+                      help="reed solomon k")
 
     transmit_path.add_options(parser, expert_grp)
     uhd_transmitter.add_options(parser)
@@ -200,7 +212,8 @@ def main():
             time.sleep(1)
         pktno += 1
         
-    send_pkt(eof=True)
+    send_pkt(0, eof=True)
+    send_pkt(1, eof=True)
 
     tb.wait()                       # wait for it to finish
 

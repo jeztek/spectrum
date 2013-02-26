@@ -23,9 +23,18 @@
 from gnuradio import gr, gru
 from gnuradio import eng_notation
 from gnuradio import digital
+from pkt import demod_pkts
 
 import copy
 import sys
+
+def module_exists(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        return False
+    else:
+        return True
 
 # /////////////////////////////////////////////////////////////////////////////
 #                              receive path
@@ -67,13 +76,20 @@ class receive_path(gr.hier_block2):
                                           0.5,                  # width of trans. band
                                           gr.firdes.WIN_HANN)   # filter type
         self.channel_filter = gr.fft_filter_ccc(sw_decim, chan_coeffs)
-        
+        coder = None
+        if options.rs_n and options.rs_k:
+          if module_exists("reedsolomon"):
+            print "INIT REED SOLOMON WITH " + str(options.rs_n) + "/" + str(options.rs_k)
+            import reedsolomon
+            coder = reedsolomon.Codec(options.rs_n, options.rs_k)
+  
         # receiver
         self.packet_receiver = \
-            digital.demod_pkts(self.demodulator,
+            demod_pkts(self.demodulator,
                                access_code=None,
                                callback=self._rx_callback,
-                               threshold=-1)
+                               threshold=-1,
+                               coder=coder)
 
         # Carrier Sensing Blocks
         alpha = 0.001

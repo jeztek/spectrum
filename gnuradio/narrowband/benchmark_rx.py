@@ -47,7 +47,7 @@ import sys
 class my_top_block(gr.top_block):
     def __init__(self, demodulator, rx_callback0, rx_callback1, options):
         gr.top_block.__init__(self)
-
+        use_source = None
         if(options.rx_freq is not None):
             # Work-around to get the modulation's bits_per_symbol
             args = demodulator.extract_kwargs_from_options(options)
@@ -59,10 +59,13 @@ class my_top_block(gr.top_block):
                                        options.spec, options.antenna,
                                        options.verbose)
             options.samples_per_symbol = self.source._sps
-
+            use_source = self.source
         elif(options.from_file is not None):
             sys.stderr.write(("Reading samples from '%s'.\n\n" % (options.from_file)))
             self.source = gr.file_source(gr.sizeof_gr_complex, options.from_file)
+            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, options.file_samp_rate)
+            self.connect(self.source, self.throttle)
+            use_source = self.throttle
         else:
             sys.stderr.write("No source defined, pulling samples from null source.\n\n")
             self.source = gr.null_source(gr.sizeof_gr_complex)
@@ -74,7 +77,11 @@ class my_top_block(gr.top_block):
         self.rxpath.append(receive_path(demodulator, rx_callback0, options))
         self.rxpath.append(receive_path(demodulator, rx_callback1, options))
 
-        samp_rate = self.source.get_sample_rate()
+        samp_rate = 0
+        if(options.rx_freq is not None):
+            samp_rate = self.source.get_sample_rate()
+        else:
+            samp_rate = options.file_samp_rate
         print "SAMP RATE " + str(samp_rate)
         
         band_transition = options.trans_width
@@ -95,12 +102,12 @@ class my_top_block(gr.top_block):
         self.low_pass_filter_qv1 = gr.fir_filter_ccf(1, firdes.low_pass(
             1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
 
-        self.connect(self.source, self.band_pass_filter_qv0)
+        self.connect(use_source, self.band_pass_filter_qv0)
         self.connect((self.band_pass_filter_qv0, 0), (self.freq_translate_qv0, 0))
         self.connect((self.freq_translate_qv0, 0), (self.low_pass_filter_qv0, 0))
         self.connect((self.low_pass_filter_qv0, 0), (self.rxpath[0], 0))
 
-        self.connect(self.source, self.band_pass_filter_qv1)
+        self.connect(use_source, self.band_pass_filter_qv1)
         self.connect((self.band_pass_filter_qv1, 0), (self.freq_translate_qv1, 0))
         self.connect((self.freq_translate_qv1, 0), (self.low_pass_filter_qv1, 0))
         self.connect((self.low_pass_filter_qv1, 0), (self.rxpath[1], 0))
@@ -161,7 +168,11 @@ def main():
                       help="file sample rate")
     custom_grp.add_option("","--split-amplitude", type="eng_float", default=0.08,
                       help="multiplier post split")
-
+    custom_grp.add_option("","--rs-n", type="int", default=0,
+                      help="reed solomon n")
+    custom_grp.add_option("","--rs-k", type="int", default=0,
+                      help="reed solomon k")
+    
     receive_path.add_options(parser, expert_grp)
     uhd_receiver.add_options(parser)
 
