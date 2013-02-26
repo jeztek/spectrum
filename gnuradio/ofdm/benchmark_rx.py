@@ -27,6 +27,11 @@ from optparse import OptionParser
 
 from uhd_interface import uhd_transmitter
 from ofdm import ofdm_demod
+from gnuradio import filter
+from gnuradio.filter import firdes
+from gnuradio.gr import firdes
+from gnuradio import blocks
+from gnuradio import eng_notation
 
 # from current dir
 from receive_path import receive_path
@@ -35,27 +40,66 @@ from uhd_interface import uhd_receiver
 import struct, sys
 
 class my_top_block(gr.top_block):
-    def __init__(self, callback, options):
+    def __init__(self, callback0, callback1, options):
         gr.top_block.__init__(self)
-
+        file_samp_rate = 2e6
+        use_source = None
         if(options.rx_freq is not None):
             self.source = uhd_receiver(options.args,
                                        options.bandwidth,
                                        options.rx_freq, options.rx_gain,
                                        options.spec, options.antenna,
                                        options.verbose)
+            use_source = self.source
         elif(options.from_file is not None):
             self.source = gr.file_source(gr.sizeof_gr_complex, options.from_file)
+            self.throttle = gr.throttle(gr.sizeof_gr_complex*1, file_samp_rate)
+            self.connect(self.source, self.throttle)
+            use_source = self.throttle
         else:
             self.source = gr.null_source(gr.sizeof_gr_complex)
 
         # Set up receive path
         # do this after for any adjustments to the options that may
         # occur in the sinks (specifically the UHD sink)
-        self.rxpath = receive_path(callback, options)
+        self.rxpath = [ ]
+        self.rxpath.append(receive_path(callback0, options))
+        self.rxpath.append(receive_path(callback1, options))
 
-        self.connect(self.source, self.rxpath)
+        samp_rate = 0
+        if(options.rx_freq is not None):
+            samp_rate = self.source.get_sample_rate()
+        else:
+            samp_rate = file_samp_rate
+
+        print "SAMP RATE " + str(samp_rate)
         
+        band_transition = 50e3
+        low_transition = 50e3
+        guard_region = 15e3
+
+        self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
+            1, samp_rate, 0e3, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
+        self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
+            1, samp_rate, (-samp_rate/2), 0e3, band_transition, firdes.WIN_HAMMING, 6.76))
+
+        self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(2, (2, ), -samp_rate/4, samp_rate)
+        self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(2, (2, ), samp_rate/4, samp_rate)
+
+        self.low_pass_filter_qv0 = gr.fir_filter_ccf(1, firdes.low_pass(
+            1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
+        self.low_pass_filter_qv1 = gr.fir_filter_ccf(1, firdes.low_pass(
+            1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
+
+        self.connect(use_source, self.band_pass_filter_qv0)
+        self.connect((self.band_pass_filter_qv0, 0), (self.freq_translate_qv0, 0))
+        self.connect((self.freq_translate_qv0, 0), (self.low_pass_filter_qv0, 0))
+        self.connect((self.low_pass_filter_qv0, 0), (self.rxpath[0], 0))
+
+        self.connect(use_source, self.band_pass_filter_qv1)
+        self.connect((self.band_pass_filter_qv1, 0), (self.freq_translate_qv1, 0))
+        self.connect((self.freq_translate_qv1, 0), (self.low_pass_filter_qv1, 0))
+        self.connect((self.low_pass_filter_qv1, 0), (self.rxpath[1], 0))
 
 # /////////////////////////////////////////////////////////////////////////////
 #                                   main
@@ -68,25 +112,21 @@ def main():
     n_rcvd = 0
     n_right = 0
 
-    def rx_callback(ok, payload):
+    def rx_callback0(ok, payload):
         global n_rcvd, n_right
         n_rcvd += 1
         (pktno,) = struct.unpack('!H', payload[0:2])
         if ok:
             n_right += 1
-        print "ok: %r \t pktno: %d \t n_rcvd: %d \t n_right: %d" % (ok, pktno, n_rcvd, n_right)
+        print "ok: %r \t pktno: %d \t n_rcvd: %d \t n_right: %d\t channel = 0" % (ok, pktno, n_rcvd, n_right)
 
-        if 0:
-            printlst = list()
-            for x in payload[2:]:
-                t = hex(ord(x)).replace('0x', '')
-                if(len(t) == 1):
-                    t = '0' + t
-                printlst.append(t)
-            printable = ''.join(printlst)
-
-            print printable
-            print "\n"
+    def rx_callback1(ok, payload):
+        global n_rcvd, n_right
+        n_rcvd += 1
+        (pktno,) = struct.unpack('!H', payload[0:2])
+        if ok:
+            n_right += 1
+        print "ok: %r \t pktno: %d \t n_rcvd: %d \t n_right: %d\t channel = 1" % (ok, pktno, n_rcvd, n_right)
 
     parser = OptionParser(option_class=eng_option, conflict_handler="resolve")
     expert_grp = parser.add_option_group("Expert")
@@ -108,7 +148,7 @@ def main():
             sys.exit(1)
 
     # build the graph
-    tb = my_top_block(rx_callback, options)
+    tb = my_top_block(rx_callback0, rx_callback1, options)
 
     r = gr.enable_realtime_scheduling()
     if r != gr.RT_OK:
