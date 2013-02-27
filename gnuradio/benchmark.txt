@@ -12,3 +12,5 @@ OFDM
 
 ./benchmark_rx.py -W 1000000 -v -f 925e6 -a type=usrp1 -A TX/RX --rx-gain=18
 
+From when luke made the PY script:
+./benchmark_tx.py -M 40 -r 4000000 --tx-amplitude=0.5 --tx-gain=20 -f 902e6 -a type=usrp1 -m gmsk -v
