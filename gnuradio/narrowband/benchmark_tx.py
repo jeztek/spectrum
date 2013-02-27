@@ -206,11 +206,11 @@ def main():
 
             send_pkt(i, payload)
 
-        n += len(payload)
-        sys.stderr.write('.')
-        if options.discontinuous and pktno % 5 == 4:
-            time.sleep(1)
-        pktno += 1
+            n += len(payload)
+            sys.stderr.write('.')
+            if options.discontinuous and pktno % 5 == 4:
+                time.sleep(1)
+            pktno += 1
         
     send_pkt(0, eof=True)
     send_pkt(1, eof=True)

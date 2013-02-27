@@ -39,6 +39,8 @@ from uhd_interface import uhd_receiver
 
 import struct
 import sys
+import time
+from threading import Lock
 
 #import os
 #print os.getpid()
@@ -117,31 +119,57 @@ class my_top_block(gr.top_block):
 #                                   main
 # /////////////////////////////////////////////////////////////////////////////
 
-global n_rcvd, n_right
+global n_rcvd, n_right, lock, start_time, end_time
 
 def main():
-    global n_rcvd, n_right
+    global n_rcvd, n_right, lock, start_time, end_time
 
     n_rcvd = 0
     n_right = 0
-    
+    lock = Lock()
+    start_time = -1
+    end_time = -1
+
+    def wrapup():
+        delta = end_time - start_time
+        print "\n", n_right, " / ", n_rcvd, " correct packets"
+        print delta, "seconds\n"
+
+        rate = float(n_right) / delta
+        if rate > 0:
+            print rate, "correct packets per second"
+
     def rx_callback0(ok, payload):
-        global n_rcvd, n_right
+        global n_rcvd, n_right, lock, start_time, end_time
+
+        t = time.time()
         (pktno,) = struct.unpack('!H', payload[0:2])
+
+        lock.acquire()
+        if start_time < 0:
+            start_time = t
+        end_time = t
         n_rcvd += 1
         if ok:
             n_right += 1
-
+        lock.release()
         print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 0" % (
             ok, pktno, n_rcvd, n_right)
 
     def rx_callback1(ok, payload):
-        global n_rcvd, n_right
+        global n_rcvd, n_right, lock, start_time, end_time
+
+        t = time.time()
         (pktno,) = struct.unpack('!H', payload[0:2])
+
+        lock.acquire()
+        if start_time < 0:
+            start_time = t
+        end_time = t
         n_rcvd += 1
         if ok:
             n_right += 1
-
+        lock.release()
         print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 1" % (
             ok, pktno, n_rcvd, n_right)
 
@@ -201,6 +229,7 @@ def main():
 
     tb.start()        # start flow graph
     tb.wait()         # wait for it to finish
+    wrapup()
 
 if __name__ == '__main__':
     try:
