@@ -14,3 +14,34 @@ OFDM
 
 From when luke made the PY script:
 ./benchmark_tx.py -M 40 -r 4000000 --tx-amplitude=0.5 --tx-gain=20 -f 902e6 -a type=usrp1 -m gmsk -v
+
+---
+ORBIT-LAB
+
+./benchmark_tx.py -M 1 -r 1000000 --tx-amplitude=0.5 --tx-gain=20 -f 2000e6 -m gmsk -v --trans-width=200e3 --guard-width=50e3 --split-amplitude=0.2 --rs-n=232 --rs-k=188
+515 / 662 correct packets
+9.88730216026 seconds
+
+./benchmark_tx.py -M 1 -r 2000000 --tx-amplitude=0.5 --tx-gain=20 -f 2000e6 -m gmsk -v --trans-width=200e3 --guard-width=50e3 --split-amplitude=0.2 --rs-n=232 --rs-k=188
+252 / 444 correct packets
+4.95873093605 seconds
+
+/benchmark_tx.py -M 1 -r 2000000 --tx-amplitude=0.5 --tx-gain=20 -f 2000e6 -m gmsk -v --trans-width=200e3 --split-amplitude=0.2 --rs-n=232 --rs-k=188
+277 / 480 correct packets
+4.9414100647 seconds
+
+---
+Orbit lab testing 2/27/13:
+
+saved image:
+aybabtus-node-node8-3.grid.orbit-lab.org-2013-02-27-18-56-57.ndz
+
+./benchmark_tx.py -v -f 1000e6 -r 2000e3 -M 100 -m qam -p 16 --tx-gain=25 --trans-width=100e3 --split-amplitude=0.15 --rs-n=40 --rs-k=32
+
+./benchmark_rx.py -v -f 1000e6 -r 2000e3 -m qam -p 16 --rx-gain=50 --trans-width=1000e3 --guard-width=150e3 --rs-n=40 --rs-k=32
+
+--------------
+
+./benchmark_tx.py -v -f 1000e6 -r 4000e3 -M 100 -m qam -p 16 --tx-gain=25 --trans-width=200e3 --split-amplitude=0.15 --rs-n=40 --rs-k=32
+
+./benchmark_rx.py -v -f 1000e6 -r 4000e3 -m qam -p 16 --rx-gain=50 --trans-width=2000e3 --guard-width=150e3 --rs-n=40 --rs-k=32
