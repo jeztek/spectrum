@@ -84,21 +84,22 @@ class my_top_block(gr.top_block):
             samp_rate = options.file_samp_rate
 
         volume = options.split_amplitude
-        band_transition = options.trans_width
-        low_transition = options.trans_width
+        band_transition = options.band_trans_width
+        low_transition = options.low_trans_width
+        guard_width = options.guard_width
 
         self.low_pass_filter_qv0 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
             1, samp_rate, samp_rate/4, low_transition, firdes.WIN_HAMMING, 6.76))
         self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(1, (10, ), samp_rate/4, samp_rate)
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, -samp_rate/2, 0, band_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, -samp_rate/2+guard_width, 0-guard_width, band_transition, firdes.WIN_HAMMING, 6.76))
 
   
         self.low_pass_filter_qv1 = gr.interp_fir_filter_ccf(2, firdes.low_pass(
             1, samp_rate, samp_rate/4, low_transition, firdes.WIN_HAMMING, 6.76))
         self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(1, (10, ), -samp_rate/4, samp_rate)
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, 0, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, 0+guard_width, samp_rate/2-guard_width, band_transition, firdes.WIN_HAMMING, 6.76))
 
         self.combiner = gr.add_vcc(1)
         self.volume_multiply = blocks.multiply_const_vcc((volume, ))
@@ -150,7 +151,9 @@ def main():
                       help="Output file for modulated samples")
 
     custom_grp = parser.add_option_group("Custom")
-    custom_grp.add_option("","--trans-width", type="eng_float", default=50e3,
+    custom_grp.add_option("","--band-trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
+    custom_grp.add_option("","--low-trans-width", type="eng_float", default=50e3,
                       help="transition width for low pass filter")
     custom_grp.add_option("","--guard-width", type="eng_float", default=10e3,
                       help="guard region width")
