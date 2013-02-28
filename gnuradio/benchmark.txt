@@ -36,6 +36,10 @@ Orbit lab testing 2/27/13:
 saved image:
 aybabtus-node-node8-3.grid.orbit-lab.org-2013-02-27-18-56-57.ndz
 
+omf load -i aybabtus-node-node8-3.grid.orbit-lab.org-2013-02-27-18-56-57.ndz -t system:topo:all
+omf tell -a on -t system:topo:all
+
+
 ./benchmark_tx.py -v -f 1000e6 -r 2000e3 -M 100 -m qam -p 16 --tx-gain=25 --trans-width=100e3 --split-amplitude=0.15 --rs-n=40 --rs-k=32
 
 ./benchmark_rx.py -v -f 1000e6 -r 2000e3 -m qam -p 16 --rx-gain=50 --trans-width=1000e3 --guard-width=150e3 --rs-n=40 --rs-k=32
