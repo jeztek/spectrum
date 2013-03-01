@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='ASCII'?>
 <flow_graph>
-  <timestamp>Mon Feb 25 18:20:05 2013</timestamp>
+  <timestamp>Thu Feb 28 18:55:38 2013</timestamp>
   <block>
     <key>options</key>
     <param>
@@ -140,29 +140,6 @@
     <param>
       <key>_coordinate</key>
       <value>(539, 94)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
-    <key>variable</key>
-    <param>
-      <key>id</key>
-      <value>samp_rate</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>500e3</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(10, 122)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -380,37 +357,6 @@
     </param>
   </block>
   <block>
-    <key>gr_multiply_const_vxx</key>
-    <param>
-      <key>id</key>
-      <value>gr_multiply_const_vxx_2</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>complex</value>
-    </param>
-    <param>
-      <key>const</key>
-      <value>0.05</value>
-    </param>
-    <param>
-      <key>vlen</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(854, 595)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
     <key>gr_noise_source_x</key>
     <param>
       <key>id</key>
@@ -559,6 +505,202 @@
     </param>
   </block>
   <block>
+    <key>variable_slider</key>
+    <param>
+      <key>id</key>
+      <value>ad</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>min</key>
+      <value>-50e3</value>
+    </param>
+    <param>
+      <key>max</key>
+      <value>50e3</value>
+    </param>
+    <param>
+      <key>num_steps</key>
+      <value>100</value>
+    </param>
+    <param>
+      <key>style</key>
+      <value>wx.SL_HORIZONTAL</value>
+    </param>
+    <param>
+      <key>converver</key>
+      <value>float_converter</value>
+    </param>
+    <param>
+      <key>grid_pos</key>
+      <value></value>
+    </param>
+    <param>
+      <key>notebook</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(806, 698)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
+    <key>band_pass_filter</key>
+    <param>
+      <key>id</key>
+      <value>band_pass_filter_0</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>fir_filter_ccc</value>
+    </param>
+    <param>
+      <key>decim</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>interp</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>gain</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>samp_rate</key>
+      <value>samp_rate</value>
+    </param>
+    <param>
+      <key>low_cutoff_freq</key>
+      <value>-samp_rate/2</value>
+    </param>
+    <param>
+      <key>high_cutoff_freq</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>width</key>
+      <value>10e3</value>
+    </param>
+    <param>
+      <key>win</key>
+      <value>firdes.WIN_HAMMING</value>
+    </param>
+    <param>
+      <key>beta</key>
+      <value>6.76</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(815, 247)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
+    <key>band_pass_filter</key>
+    <param>
+      <key>id</key>
+      <value>band_pass_filter_0_0</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>fir_filter_ccc</value>
+    </param>
+    <param>
+      <key>decim</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>interp</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>gain</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>samp_rate</key>
+      <value>samp_rate</value>
+    </param>
+    <param>
+      <key>low_cutoff_freq</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>high_cutoff_freq</key>
+      <value>samp_rate/2</value>
+    </param>
+    <param>
+      <key>width</key>
+      <value>10e3</value>
+    </param>
+    <param>
+      <key>win</key>
+      <value>firdes.WIN_HAMMING</value>
+    </param>
+    <param>
+      <key>beta</key>
+      <value>6.76</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(823, 410)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>id</key>
+      <value>samp_rate</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>1000e3</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(10, 122)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
     <key>low_pass_filter</key>
     <param>
       <key>id</key>
@@ -594,7 +736,7 @@
     </param>
     <param>
       <key>width</key>
-      <value>1e3</value>
+      <value>20e3</value>
     </param>
     <param>
       <key>win</key>
@@ -649,7 +791,7 @@
     </param>
     <param>
       <key>width</key>
-      <value>1e3</value>
+      <value>20e3</value>
     </param>
     <param>
       <key>win</key>
@@ -662,61 +804,6 @@
     <param>
       <key>_coordinate</key>
       <value>(370, 391)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
-    <key>variable_slider</key>
-    <param>
-      <key>id</key>
-      <value>ad</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>label</key>
-      <value></value>
-    </param>
-    <param>
-      <key>value</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>min</key>
-      <value>-50e3</value>
-    </param>
-    <param>
-      <key>max</key>
-      <value>50e3</value>
-    </param>
-    <param>
-      <key>num_steps</key>
-      <value>100</value>
-    </param>
-    <param>
-      <key>style</key>
-      <value>wx.SL_HORIZONTAL</value>
-    </param>
-    <param>
-      <key>converver</key>
-      <value>float_converter</value>
-    </param>
-    <param>
-      <key>grid_pos</key>
-      <value></value>
-    </param>
-    <param>
-      <key>notebook</key>
-      <value></value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(806, 698)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -871,7 +958,7 @@
     </param>
     <param>
       <key>gain0</key>
-      <value>10</value>
+      <value>25</value>
     </param>
     <param>
       <key>ant0</key>
@@ -1387,10 +1474,10 @@
     </param>
   </block>
   <block>
-    <key>band_pass_filter</key>
+    <key>gr_multiply_const_vxx</key>
     <param>
       <key>id</key>
-      <value>band_pass_filter_0</value>
+      <value>gr_multiply_const_vxx_2</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -1398,106 +1485,19 @@
     </param>
     <param>
       <key>type</key>
-      <value>fir_filter_ccc</value>
+      <value>complex</value>
     </param>
     <param>
-      <key>decim</key>
+      <key>const</key>
+      <value>0.04</value>
+    </param>
+    <param>
+      <key>vlen</key>
       <value>1</value>
-    </param>
-    <param>
-      <key>interp</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>gain</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>samp_rate</key>
-      <value>samp_rate</value>
-    </param>
-    <param>
-      <key>low_cutoff_freq</key>
-      <value>-samp_rate/2</value>
-    </param>
-    <param>
-      <key>high_cutoff_freq</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>width</key>
-      <value>10e3</value>
-    </param>
-    <param>
-      <key>win</key>
-      <value>firdes.WIN_HAMMING</value>
-    </param>
-    <param>
-      <key>beta</key>
-      <value>6.76</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(815, 247)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
-    <key>band_pass_filter</key>
-    <param>
-      <key>id</key>
-      <value>band_pass_filter_0_0</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>type</key>
-      <value>fir_filter_ccc</value>
-    </param>
-    <param>
-      <key>decim</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>interp</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>gain</key>
-      <value>1</value>
-    </param>
-    <param>
-      <key>samp_rate</key>
-      <value>samp_rate</value>
-    </param>
-    <param>
-      <key>low_cutoff_freq</key>
-      <value>0</value>
-    </param>
-    <param>
-      <key>high_cutoff_freq</key>
-      <value>samp_rate/2</value>
-    </param>
-    <param>
-      <key>width</key>
-      <value>10e3</value>
-    </param>
-    <param>
-      <key>win</key>
-      <value>firdes.WIN_HAMMING</value>
-    </param>
-    <param>
-      <key>beta</key>
-      <value>6.76</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(823, 410)</value>
+      <value>(854, 595)</value>
     </param>
     <param>
       <key>_rotation</key>
