@@ -71,22 +71,21 @@ class my_top_block(gr.top_block):
         else:
             samp_rate = options.file_samp_rate
       
-        band_transition = options.trans_width
-        low_transition = options.trans_width
-        guard_region = options.guard_width
-  
+        band_transition = options.band_trans_width
+        low_transition = options.low_trans_width
+        guard_width = options.guard_width
+
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, 0e3, samp_rate/2, band_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, 0e3+guard_width, samp_rate/2-guard_width, band_transition, firdes.WIN_HAMMING, 6.76))
+        self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(1, (10, ), samp_rate/4, samp_rate)
+        self.low_pass_filter_qv0 = gr.fir_filter_ccf(2, firdes.low_pass(
+            1, samp_rate, samp_rate/4-guard_width/2, low_transition, firdes.WIN_HAMMING, 6.76))
+
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
-            1, samp_rate, (-samp_rate/2), 0e3, band_transition, firdes.WIN_HAMMING, 6.76))
-
-        self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(2, (2, ), -samp_rate/4, samp_rate)
-        self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(2, (2, ), samp_rate/4, samp_rate)
-
-        self.low_pass_filter_qv0 = gr.fir_filter_ccf(1, firdes.low_pass(
-            1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
-        self.low_pass_filter_qv1 = gr.fir_filter_ccf(1, firdes.low_pass(
-            1, samp_rate/2, samp_rate/4-guard_region, low_transition, firdes.WIN_HAMMING, 6.76))
+            1, samp_rate, (-samp_rate/2)+guard_width, 0e3-guard_width, band_transition, firdes.WIN_HAMMING, 6.76))
+        self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(1, (10, ), -samp_rate/4, samp_rate)
+        self.low_pass_filter_qv1 = gr.fir_filter_ccf(2, firdes.low_pass(
+            1, samp_rate, samp_rate/4-guard_width/2, low_transition, firdes.WIN_HAMMING, 6.76))
 
         self.connect(use_source, self.band_pass_filter_qv0)
         self.connect((self.band_pass_filter_qv0, 0), (self.freq_translate_qv0, 0))
@@ -104,26 +103,56 @@ class my_top_block(gr.top_block):
 
 def main():
 
-    global n_rcvd, n_right
-        
+    global n_rcvd, n_right, lock, start_time, end_time
+
     n_rcvd = 0
     n_right = 0
+    lock = Lock()
+    start_time = -1
+    end_time = -1
+
+    def wrapup():
+        delta = end_time - start_time
+        print "\n", n_right, " / ", n_rcvd, " correct packets"
+        print delta, "seconds\n"
+
+        rate = float(n_right) / delta
+        if rate > 0:
+            print rate, "correct packets per second"
 
     def rx_callback0(ok, payload):
-        global n_rcvd, n_right
-        n_rcvd += 1
+        global n_rcvd, n_right, lock, start_time, end_time
+
+        t = time.time()
         (pktno,) = struct.unpack('!H', payload[0:2])
+
+        lock.acquire()
+        if start_time < 0:
+            start_time = t
+        end_time = t
+        n_rcvd += 1
         if ok:
             n_right += 1
-        print "ok: %r \t pktno: %d \t n_rcvd: %d \t n_right: %d\t channel = 0" % (ok, pktno, n_rcvd, n_right)
+        lock.release()
+        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 0" % (
+            ok, pktno, n_rcvd, n_right)
 
     def rx_callback1(ok, payload):
-        global n_rcvd, n_right
-        n_rcvd += 1
+        global n_rcvd, n_right, lock, start_time, end_time
+
+        t = time.time()
         (pktno,) = struct.unpack('!H', payload[0:2])
+
+        lock.acquire()
+        if start_time < 0:
+            start_time = t
+        end_time = t
+        n_rcvd += 1
         if ok:
             n_right += 1
-        print "ok: %r \t pktno: %d \t n_rcvd: %d \t n_right: %d\t channel = 1" % (ok, pktno, n_rcvd, n_right)
+        lock.release()
+        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 1" % (
+            ok, pktno, n_rcvd, n_right)
 
     parser = OptionParser(option_class=eng_option, conflict_handler="resolve")
     expert_grp = parser.add_option_group("Expert")
@@ -132,14 +161,14 @@ def main():
                       help="enable discontinuous")
     parser.add_option("","--from-file", default=None,
                       help="input file of samples to demod")
-    custom_grp.add_option("","--trans-width", type="eng_float", default=50e3,
-                      help="transition width for low pass filter")
-    custom_grp.add_option("","--guard-width", type="eng_float", default=10e3,
+    custom_grp.add_option("","--guard-width", type="eng_float", default=50e3,
                       help="guard region width")
+    custom_grp.add_option("","--band-trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
+    custom_grp.add_option("","--low-trans-width", type="eng_float", default=50e3,
+                      help="transition width for low pass filter")
     custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
                       help="file sample rate")
-    custom_grp.add_option("","--split-amplitude", type="eng_float", default=1,
-                      help="multiplier post split")
     custom_grp.add_option("","--rs-n", type="int", default=0,
                       help="reed solomon n")
     custom_grp.add_option("","--rs-k", type="int", default=0,
@@ -165,7 +194,8 @@ def main():
 
     tb.start()                      # start flow graph
     tb.wait()                       # wait for it to finish
-
+    wrapup()
+    
 if __name__ == '__main__':
     try:
         main()

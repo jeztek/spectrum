@@ -190,7 +190,7 @@ def main():
     custom_grp.add_option("","--guard-width", type="eng_float", default=50e3,
                       help="guard region width")
     custom_grp.add_option("","--band-trans-width", type="eng_float", default=50e3,
-                      help="transition width for low pass filter")
+                      help="transition width for band pass filter")
     custom_grp.add_option("","--low-trans-width", type="eng_float", default=50e3,
                       help="transition width for low pass filter")
     custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
