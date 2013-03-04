@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #
 # Copyright 2010,2011 Free Software Foundation, Inc.
-# 
+#
 # This file is part of GNU Radio
-# 
+#
 # GNU Radio is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Radio is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Radio; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
 
 from gnuradio import gr, gru
 from gnuradio import eng_notation
@@ -86,7 +86,7 @@ class my_top_block(gr.top_block):
             samp_rate = options.file_samp_rate
 
         print "SAMP RATE " + str(samp_rate)
-        
+
         band_transition = options.band_trans_width
         low_transition = options.low_trans_width
         guard_width = options.guard_width
@@ -112,7 +112,7 @@ class my_top_block(gr.top_block):
         self.connect((self.band_pass_filter_qv1, 0), (self.freq_translate_qv1, 0))
         self.connect((self.freq_translate_qv1, 0), (self.low_pass_filter_qv1, 0))
         self.connect((self.low_pass_filter_qv1, 0), (self.rxpath[1], 0))
-     
+
 
 # /////////////////////////////////////////////////////////////////////////////
 #                                   main
@@ -138,56 +138,43 @@ def main():
         if rate > 0:
             print rate, "correct packets per second"
 
+    def rx_callback(ok, payload, channel):
+    	global n_rcvd, n_right, lock, start_time, end_time
+
+    	t = time.time()
+    	(pktno,) = struct.unpack('!H', payload[0:2])
+
+    	lock.acquire()
+    	if start_time < 0:
+    	    start_time = t
+    	end_time = t
+    	n_rcvd += 1
+    	if ok:
+    	    n_right += 1
+    	lock.release()
+    	print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d  channel = %1d" % (
+    	    ok, pktno, n_rcvd, n_right, channel)
+
     def rx_callback0(ok, payload):
-        global n_rcvd, n_right, lock, start_time, end_time
-
-        t = time.time()
-        (pktno,) = struct.unpack('!H', payload[0:2])
-
-        lock.acquire()
-        if start_time < 0:
-            start_time = t
-        end_time = t
-        n_rcvd += 1
-        if ok:
-            n_right += 1
-        lock.release()
-        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 0" % (
-            ok, pktno, n_rcvd, n_right)
+       rx_callback(ok, payload, 0)
 
     def rx_callback1(ok, payload):
-        global n_rcvd, n_right, lock, start_time, end_time
-
-        t = time.time()
-        (pktno,) = struct.unpack('!H', payload[0:2])
-
-        lock.acquire()
-        if start_time < 0:
-            start_time = t
-        end_time = t
-        n_rcvd += 1
-        if ok:
-            n_right += 1
-        lock.release()
-        print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d   channel = 1" % (
-            ok, pktno, n_rcvd, n_right)
-
+       rx_callback(ok, payload, 1)
 
     demods = digital.modulation_utils.type_1_demods()
 
     # Create Options Parser:
     parser = OptionParser (option_class=eng_option, conflict_handler="resolve")
     expert_grp = parser.add_option_group("Expert")
-
-    parser.add_option("-m", "--modulation", type="choice", choices=demods.keys(), 
-                      default='psk',
+    parser.add_option("-m", "--modulation", type="choice", choices=demods.keys(),
+                      default='qam',
                       help="Select modulation from: %s [default=%%default]"
                             % (', '.join(demods.keys()),))
     parser.add_option("","--from-file", default=None,
                       help="input file of samples to demod")
-    
+
     custom_grp = parser.add_option_group("Custom")
-    custom_grp.add_option("","--guard-width", type="eng_float", default=50e3,
+    custom_grp.add_option("","--guard-width", type="eng_float", default=300e3,
                       help="guard region width")
     custom_grp.add_option("","--band-trans-width", type="eng_float", default=50e3,
                       help="transition width for band pass filter")
@@ -195,13 +182,13 @@ def main():
                       help="transition width for low pass filter")
     custom_grp.add_option("","--file-samp-rate", type="eng_float", default=1e6,
                       help="file sample rate")
-    custom_grp.add_option("","--rs-n", type="int", default=0,
+    custom_grp.add_option("","--rs-n", type="int", default=194,
                       help="reed solomon n")
-    custom_grp.add_option("","--rs-k", type="int", default=0,
+    custom_grp.add_option("","--rs-k", type="int", default=188,
                       help="reed solomon k")
-    custom_grp.add_option("","--num-taps", type="int", default=10,
+    custom_grp.add_option("","--num-taps", type="int", default=2,
                       help="taps")
-    
+
     receive_path.add_options(parser, expert_grp)
     uhd_receiver.add_options(parser)
 
@@ -209,6 +196,10 @@ def main():
         mod.add_options(expert_grp)
 
     (options, args) = parser.parse_args ()
+
+    options.bitrate = 3000e3
+    options.rx_gain = 50
+    options.constellation_points = 16
 
     if len(args) != 0:
         parser.print_help(sys.stderr)
