@@ -93,13 +93,13 @@ class my_top_block(gr.top_block):
 
         self.band_pass_filter_qv0 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
             1, samp_rate, 0e3+guard_width, samp_rate/2-guard_width, band_transition, firdes.WIN_HAMMING, 6.76))
-        self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(1, (10, ), samp_rate/4, samp_rate)
+        self.freq_translate_qv0 = filter.freq_xlating_fir_filter_ccc(1, (options.num_taps, ), samp_rate/4, samp_rate)
         self.low_pass_filter_qv0 = gr.fir_filter_ccf(2, firdes.low_pass(
             1, samp_rate, samp_rate/4-guard_width/2, low_transition, firdes.WIN_HAMMING, 6.76))
 
         self.band_pass_filter_qv1 = gr.fir_filter_ccc(1, firdes.complex_band_pass(
             1, samp_rate, (-samp_rate/2)+guard_width, 0e3-guard_width, band_transition, firdes.WIN_HAMMING, 6.76))
-        self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(1, (10, ), -samp_rate/4, samp_rate)
+        self.freq_translate_qv1 = filter.freq_xlating_fir_filter_ccc(1, (options.num_taps, ), -samp_rate/4, samp_rate)
         self.low_pass_filter_qv1 = gr.fir_filter_ccf(2, firdes.low_pass(
             1, samp_rate, samp_rate/4-guard_width/2, low_transition, firdes.WIN_HAMMING, 6.76))
 
@@ -199,6 +199,8 @@ def main():
                       help="reed solomon n")
     custom_grp.add_option("","--rs-k", type="int", default=0,
                       help="reed solomon k")
+    custom_grp.add_option("","--num-taps", type="int", default=10,
+                      help="taps")
     
     receive_path.add_options(parser, expert_grp)
     uhd_receiver.add_options(parser)
