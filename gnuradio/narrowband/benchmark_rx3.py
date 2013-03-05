@@ -145,33 +145,36 @@ def main():
 
     def rx_callback(ok, payload, channel):
         global n_rcvd, n_right, start_time, stop_rcv
-        (pktno,crc,sn) = struct.unpack('!HLL', payload[0:10])
-        n_rcvd += 1
-        if ok:
-            n_right += 1
-            try:
-               data = s.recv(4) # if a ready packet is received
-               s.send(payload[2:])
-            except socket.error as e:
-               print "Socket error: %s" %e.strerror
-               stop_rcv = 1
-               return
-            if data.__len__() == 0:
-               print "Connection closed"
-               stop_rcv = 1
-               return
-            if n_right == 1:
-               start_time = time.time()
-            #if n_right == 2000:
-            #   t = time.time() - start_time
-            #   print"Mod : %5s, Rate : %8d, Time for 2000 pkts : %f sec\n" %(options.modulation, options.bitrate, t)
-            #   stop_rcv = 1;
+        try:
+	        (pktno,crc,sn) = struct.unpack('!HLL', payload[0:10])
+	        n_rcvd += 1
+	        if ok:
+	            n_right += 1
+	            try:
+	               data = s.recv(4) # if a ready packet is received
+	               s.send(payload[2:])
+	            except socket.error as e:
+	               print "Socket error: %s" %e.strerror
+	               stop_rcv = 1
+	               return
+	            if data.__len__() == 0:
+	               print "Connection closed"
+	               stop_rcv = 1
+	               return
+	            if n_right == 1:
+	               start_time = time.time()
+	            #if n_right == 2000:
+	            #   t = time.time() - start_time
+	            #   print"Mod : %5s, Rate : %8d, Time for 2000 pkts : %f sec\n" %(options.modulation, options.bitrate, t)
+	            #   stop_rcv = 1;
 
 
 
-        if options.verbose:
-           print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d  channel = %1d" %(
-            ok, pktno, n_rcvd, n_right, channel)
+	        if options.verbose:
+	           print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d  channel = %1d" %(
+	            ok, pktno, n_rcvd, n_right, channel)
+	     except:
+	     	return
 
     def rx_callback0(ok, payload):
 		lock.acquire()
