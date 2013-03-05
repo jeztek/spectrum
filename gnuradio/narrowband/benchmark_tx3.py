@@ -160,9 +160,9 @@ def main():
                       help="file sample rate")
     custom_grp.add_option("","--split-amplitude", type="eng_float", default=0.15,
                       help="multiplier post split")
-    custom_grp.add_option("","--rs-n", type="int", default=194,
+    custom_grp.add_option("","--rs-n", type="int", default=252,
                       help="reed solomon n")
-    custom_grp.add_option("","--rs-k", type="int", default=188,
+    custom_grp.add_option("","--rs-k", type="int", default=241,
                       help="reed solomon k")
     custom_grp.add_option("","--num-taps", type="int", default=2,
                       help="reed solomon k")
