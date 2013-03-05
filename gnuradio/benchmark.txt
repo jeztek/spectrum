@@ -49,3 +49,20 @@ omf tell -a on -t system:topo:all
 ./benchmark_tx.py -v -f 1000e6 -r 4000e3 -M 100 -m qam -p 16 --tx-gain=25 --trans-width=200e3 --split-amplitude=0.15 --rs-n=40 --rs-k=32
 
 ./benchmark_rx.py -v -f 1000e6 -r 4000e3 -m qam -p 16 --rx-gain=50 --trans-width=2000e3 --guard-width=150e3 --rs-n=40 --rs-k=32
+
+
+============================
+Mon Mar  4 15:55:41 PST 2013
+
+omf load -i darpahurdle23.ndz -t system:topo:all
+omf tell -a on -t system:topo:all
+
+./prepare.sh
+omf save -n nodename.grid.orbit-lab.org
+
+
+
+
+Teams are reminded that it is prudent to give themselves enough time to save their work before the end of their time slot. After saving their final image, teams must email the Challenge at challenge@orbit-lab.org to inform the Challenge of the team's final submission. This email must contain the name of the saved image (as provided on the screen after issuing the omf save command) that the team wishes to submit for evaluation. Teams that do not inform the Challenge of their saved image within 24 hours of the Qualification Period ending will be evaluated using the originally provided baseline. Teams should also note that the names of their radio transmitter and receiver must be benchmark_tx3 and benchmark_rx3, respectively,with unmodified packet source and packet destination modules, and command line argument for center frequency specification. Evaluation will only be performed using benchmark_tx3 and benchmark_rx3 names.
+
+The Qualification Period ends March 5 at 11:59:59PM Eastern Standard Time. 
