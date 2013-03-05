@@ -173,7 +173,7 @@ def main():
 	        if options.verbose:
 	           print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d  channel = %1d" %(
 	            ok, pktno, n_rcvd, n_right, channel)
-	    except:
+        except:
 	        return
 
     def rx_callback0(ok, payload):
