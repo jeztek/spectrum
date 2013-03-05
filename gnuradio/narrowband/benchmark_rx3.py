@@ -255,7 +255,7 @@ def main():
     os.system(cmd1)
 
     tb.start()        # start flow graph
-   # tb.wait()         # wait for it to finish
+   	tb.wait()         # wait for it to finish
 
     while mstr_cnt < TIMEOUT*1000:
        if stop_rcv == 1:
