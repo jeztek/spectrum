@@ -174,11 +174,13 @@ def main():
             ok, pktno, n_rcvd, n_right, channel)
 
     def rx_callback0(ok, payload):
-       lock.acquire()
-       rx_callback(ok, payload, 0)
-       lock.release()
+		print "RX1"
+		lock.acquire()
+		rx_callback(ok, payload, 0)
+		lock.release()
 
     def rx_callback1(ok, payload):
+       print "RX2"
        lock.acquire()
        rx_callback(ok, payload, 1)
        lock.release()
