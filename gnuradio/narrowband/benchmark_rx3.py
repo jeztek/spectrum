@@ -174,13 +174,11 @@ def main():
             ok, pktno, n_rcvd, n_right, channel)
 
     def rx_callback0(ok, payload):
-		print "RX1"
 		lock.acquire()
 		rx_callback(ok, payload, 0)
 		lock.release()
 
     def rx_callback1(ok, payload):
-       print "RX2"
        lock.acquire()
        rx_callback(ok, payload, 1)
        lock.release()
@@ -198,7 +196,7 @@ def main():
                       help="input file of samples to demod")
 
     custom_grp = parser.add_option_group("Custom")
-    custom_grp.add_option("","--guard-width", type="eng_float", default=300e3,
+    custom_grp.add_option("","--guard-width", type="eng_float", default=250e3,
                       help="guard region width")
     custom_grp.add_option("","--band-trans-width", type="eng_float", default=50e3,
                       help="transition width for band pass filter")
