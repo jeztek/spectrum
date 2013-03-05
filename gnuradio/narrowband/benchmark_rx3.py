@@ -127,6 +127,7 @@ def main():
     TIMEOUT = 600 # 600 sec for hurdle 3
     n_rcvd = 0
     n_right = 0
+    lock = Lock()
     start_time = 0
     mstr_cnt = 0
     stop_rcv = 0
