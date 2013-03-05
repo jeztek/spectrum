@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #
 # Copyright 2010,2011 Free Software Foundation, Inc.
-#
+# 
 # This file is part of GNU Radio
-#
+# 
 # GNU Radio is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-#
+# 
 # GNU Radio is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with GNU Radio; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-#
+# 
 
 from gnuradio import gr
 from gnuradio import eng_notation
@@ -37,9 +37,9 @@ from gnuradio import digital
 from transmit_path import transmit_path
 from uhd_interface import uhd_transmitter
 
-import time, struct, sys
+import time, struct, sys, socket
 
-#import os
+#import os 
 #print os.getpid()
 #raw_input('Attach and press enter')
 
@@ -182,7 +182,7 @@ def main():
     if len(args) != 0:
         parser.print_help()
         sys.exit(1)
-
+           
     if options.from_file is not None:
         source_file = open(options.from_file, 'r')
 
@@ -194,7 +194,7 @@ def main():
         print "Warning: failed to enable realtime scheduling"
 
     tb.start()                       # start flow graph
-
+        
     # log parameter to OML
     cmd1 = "/root/OML/omlcli --out h3_benchmark --line \""
     cmd1 = cmd1 + " tx-freq=" + str(options.tx_freq)
@@ -214,55 +214,55 @@ def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(10)
     TCP_IP='idb2'
-    TCP_PORT=5100
+    TCP_PORT=5100    
     try:
        s.connect((TCP_IP, TCP_PORT))
-    except socket.timeout:
+    except socket.timeout: 
        print"Connection timed out, try again later"
        return
     except socket.error:
        print"Connection error"
        return
 
-
+   
     n = 0
     pktno = 0
     pkt_size = int(1442)
     MESSAGE = struct.pack('!l',pkt_size-2)
 
     while 1: #n < nbytes:
-    	for i in range(2):
-	        if options.from_file is None:
-	            try:
-	               s.send(MESSAGE)
-	               data=s.recv(pkt_size-2)
-	            except socket.timeout:
-	               print"Connection timed out, try again later"
-	               return
-	            except socket.error:
-	               print"Connection closed"
-	               return
-	            if data.__len__() < 8:
-	               print "Connection timed out, try again later"
-	               break
-	            if options.verbose:
-	                # First 4 bytes are checksum followed by the 4 byte sequence number
-	                   crc,sn = struct.unpack('!LL',data[:8])
-	                   print "Seq #:", sn, " with CRC [", hex(crc), "]"
+    for i in range(2):
+        if options.from_file is None:
+            try:
+               s.send(MESSAGE)
+               data=s.recv(pkt_size-2)
+            except socket.timeout: 
+               print"Connection timed out, try again later"
+               return
+            except socket.error:
+               print"Connection closed"
+               return
+            if data.__len__() < 8:
+               print "Connection timed out, try again later"
+               break
+            if options.verbose:
+                # First 4 bytes are checksum followed by the 4 byte sequence number
+                   crc,sn = struct.unpack('!LL',data[:8])
+                   print "Seq #:", sn, " with CRC [", hex(crc), "]"
+                
+        else:
+            data = source_file.read(pkt_size - 2)
+            if data == '':
+                break;
 
-	        else:
-	            data = source_file.read(pkt_size - 2)
-	            if data == '':
-	                break;
-
-	        payload = struct.pack('!H', pktno & 0xffff) + data
-	        send_pkt(i, payload)
-	        n += len(payload)
-	        sys.stderr.write('.')
-	        if options.discontinuous and pktno % 5 == 4:
-	            time.sleep(1)
-	        pktno += 1
-
+        payload = struct.pack('!H', pktno & 0xffff) + data
+        send_pkt(i, payload)
+        n += len(payload)
+        sys.stderr.write('.')
+        if options.discontinuous and pktno % 5 == 4:
+            time.sleep(1)
+        pktno += 1
+        
     if options.from_file is None:
         s.close()
     time.sleep(5)

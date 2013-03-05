@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #
 # Copyright 2010,2011 Free Software Foundation, Inc.
-# 
+#
 # This file is part of GNU Radio
-# 
+#
 # GNU Radio is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # GNU Radio is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Radio; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
 
 from gnuradio import gr, gru
 from gnuradio import eng_notation
@@ -40,6 +40,7 @@ from uhd_interface import uhd_receiver
 import struct
 import sys
 import time
+import socket
 from threading import Lock
 
 #import os
@@ -129,25 +130,25 @@ def main():
     start_time = 0
     mstr_cnt = 0
     stop_rcv = 0
-    
+
 
 
     TCP_IP='idb2'
     TCP_PORT=5102
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try: 
+    try:
        s.connect((TCP_IP, TCP_PORT))
     except socket.error as e:
        print "Error connecting to the packet sink: %s" %e.strerror
        return
-    
+
     def rx_callback(ok, payload, channel):
         global n_rcvd, n_right, start_time, stop_rcv
         (pktno,crc,sn) = struct.unpack('!HLL', payload[0:10])
         n_rcvd += 1
         if ok:
             n_right += 1
-            try:            
+            try:
                data = s.recv(4) # if a ready packet is received
                s.send(payload[2:])
             except socket.error as e:
@@ -161,16 +162,16 @@ def main():
             if n_right == 1:
                start_time = time.time()
             #if n_right == 2000:
-            #   t = time.time() - start_time              
+            #   t = time.time() - start_time
             #   print"Mod : %5s, Rate : %8d, Time for 2000 pkts : %f sec\n" %(options.modulation, options.bitrate, t)
             #   stop_rcv = 1;
-              
 
-            
+
+
         if options.verbose:
            print "ok = %5s  pktno = %4d  n_rcvd = %4d  n_right = %4d  channel = %1d" %(
             ok, pktno, n_rcvd, n_right, channel)
-            
+
     def rx_callback0(ok, payload):
        lock.acquire()
        rx_callback(ok, payload, 0)
@@ -180,7 +181,7 @@ def main():
        lock.acquire()
        rx_callback(ok, payload, 1)
        lock.release()
-       
+
     demods = digital.modulation_utils.type_1_demods()
 
     # Create Options Parser:
@@ -254,7 +255,7 @@ def main():
 
     tb.start()        # start flow graph
    # tb.wait()         # wait for it to finish
-    
+
     while mstr_cnt < TIMEOUT*1000:
        if stop_rcv == 1:
           break;
