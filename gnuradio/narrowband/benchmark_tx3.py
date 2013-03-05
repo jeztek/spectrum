@@ -255,13 +255,13 @@ def main():
 	            if data == '':
 	                break;
 
-        payload = struct.pack('!H', pktno & 0xffff) + data
-        send_pkt(i, payload)
-        n += len(payload)
-        sys.stderr.write('.')
-        if options.discontinuous and pktno % 5 == 4:
-            time.sleep(1)
-        pktno += 1
+	        payload = struct.pack('!H', pktno & 0xffff) + data
+	        send_pkt(i, payload)
+	        n += len(payload)
+	        sys.stderr.write('.')
+	        if options.discontinuous and pktno % 5 == 4:
+	            time.sleep(1)
+	        pktno += 1
 
     if options.from_file is None:
         s.close()
