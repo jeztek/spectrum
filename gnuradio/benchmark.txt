@@ -60,9 +60,68 @@ omf tell -a on -t system:topo:all
 ./prepare.sh
 omf save -n nodename.grid.orbit-lab.org
 
-
-
-
 Teams are reminded that it is prudent to give themselves enough time to save their work before the end of their time slot. After saving their final image, teams must email the Challenge at challenge@orbit-lab.org to inform the Challenge of the team's final submission. This email must contain the name of the saved image (as provided on the screen after issuing the omf save command) that the team wishes to submit for evaluation. Teams that do not inform the Challenge of their saved image within 24 hours of the Qualification Period ending will be evaluated using the originally provided baseline. Teams should also note that the names of their radio transmitter and receiver must be benchmark_tx3 and benchmark_rx3, respectively,with unmodified packet source and packet destination modules, and command line argument for center frequency specification. Evaluation will only be performed using benchmark_tx3 and benchmark_rx3 names.
 
 The Qualification Period ends March 5 at 11:59:59PM Eastern Standard Time. 
+
+============================
+Tue Mar  5 15:06:25 PST 2013
+
+omf load -i darpahurdle23.ndz -t system:topo:all
+omf tell -a on -t system:topo:all
+omf save -n node5-5.grid.orbit-lab.org
+
+=> aybabtus-node-node5-5.grid.orbit-lab.org-2013-03-05-18-01-55.ndz
+
+# re-image to delete data off nodes
+omf load -i darpahurdle23.ndz -t system:topo:all
+
+----
+aybabtus@console.grid:~$ omf save -n node5-5.grid.orbit-lab.org
+Due to overload, your request has been placed on hold and will be served as soon as resources become available...
+Due to overload, your request has been placed on hold and will be served as soon as resources become available...
+
+ INFO NodeHandler: OMF Experiment Controller 5.4 (git c005675)
+ INFO NodeHandler: Slice ID: pxe_slice 
+ INFO NodeHandler: Experiment ID: pxe_slice-2013-03-05t18.00.43.412-05.00
+ INFO NodeHandler: Message authentication is disabled
+ INFO Experiment: load system:exp:stdlib
+ INFO property.resetDelay: resetDelay = 230 (Fixnum)
+ INFO property.resetTries: resetTries = 1 (Fixnum)
+ INFO Experiment: load system:exp:eventlib
+ INFO Experiment: load system:exp:winlib
+ INFO Experiment: load system:exp:saveNode
+ INFO property.node: node = "node5-5.grid.orbit-lab.org" (String)
+ INFO property.pxe: pxe = "1.1.6" (String)
+ INFO property.domain: domain = "grid.orbit-lab.org" (String)
+ INFO property.started: started = "false" (String)
+ INFO property.image: image = nil (NilClass)
+ INFO property.resize: resize = nil (NilClass)
+ WARN exp: Saving only works for ext2/ext3 partitions and MBR (msdos) partition tables. Saving any other filesystem or partition table type will produce a 0 byte image.
+ INFO Topology: Loading topology 'node5-5.grid.orbit-lab.org'.
+ INFO Experiment: Resetting resources
+ INFO stdlib: Waiting for nodes (Up/Down/Total): 0/1/1 - (still down: node5-5.grid.orbit-lab.org) [0 sec.]
+ INFO stdlib: Waiting for nodes (Up/Down/Total): 0/1/1 - (still down: node5-5.grid.orbit-lab.org) [10 sec.]
+ INFO stdlib: Waiting for nodes (Up/Down/Total): 0/1/1 - (still down: node5-5.grid.orbit-lab.org) [20 sec.]
+ INFO stdlib: Waiting for nodes (Up/Down/Total): 0/1/1 - (still down: node5-5.grid.orbit-lab.org) [30 sec.]
+ INFO stdlib: Waiting for nodes (Up/Down/Total): 0/1/1 - (still down: node5-5.grid.orbit-lab.org) [40 sec.]
+ INFO stdlib: Waiting for nodes (Up/Down/Total): 0/1/1 - (still down: node5-5.grid.orbit-lab.org) [50 sec.]
+ INFO ALL_UP: Event triggered. Starting the associated tasks.
+ INFO node5-5.grid.orbit-lab.org:  
+ INFO node5-5.grid.orbit-lab.org: - Saving image of '/dev/sda' on node 'node5-5.grid.orbit-lab.org'
+ INFO node5-5.grid.orbit-lab.org:   to the file 'aybabtus-node-node5-5.grid.orbit-lab.org-2013-03-05-18-01-55.ndz' on host '10.10.0.42'
+ INFO node5-5.grid.orbit-lab.org:  
+ INFO property.started: started = "true" (String)
+ INFO exp:  
+ INFO exp: - Saving process started at: Tue Mar 05 18:02:05 -0500 2013
+ INFO exp:   (this may take a while depending on the size of your image)
+ INFO exp: - Saving disk image of 'node5-5.grid.orbit-lab.org' finished with success.
+ INFO exp: - Saving process completed at: Tue Mar 05 18:04:15 -0500 2013
+ INFO exp:  
+ INFO EXPERIMENT_DONE: Event triggered. Starting the associated tasks.
+ INFO NodeHandler: 
+ INFO NodeHandler: Shutting down experiment, please wait...
+ INFO NodeHandler: 
+ INFO NodeHandler: Shutdown flag is set - Turning Off the resources
+ INFO run: Experiment pxe_slice-2013-03-05t18.00.43.412-05.00 finished after 3:43
+
